@@ -1,0 +1,20 @@
+[
+  {
+    "insert": "milk"
+  },
+  {
+    "attributes": {
+      "list": "unchecked"
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "cheese"
+  },
+  {
+    "attributes": {
+      "list": "checked"
+    },
+    "insert": "\n"
+  }
+]

@@ -1,0 +1,60 @@
+{
+  "name": "md-to-quill-delta",
+  "version": "1.0.0",
+  "description": "Markdown to Quill Delta",
+  "main": "dist/umd/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "build:umd": "webpack --config webpack.config.ts --mode=production",
+    "build:esm": "tsc --module es2015",
+    "build:dist": "npm run build:esm && npm run build:umd",
+    "build:clean": "rm -rf dist",
+    "postversion": "npm run build:dist && git push && npm publish && npm run build:clean",
+    "test": "jest",
+    "test:coverage": "jest --collect-coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volser/md-to-quill-delta.git"
+  },
+  "keywords": [
+    "quill",
+    "table",
+    "ui"
+  ],
+  "author": "Sergiy VOloshyn <sergey.voloshyn@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/volser/md-to-quill-delta/issues"
+  },
+  "homepage": "https://github.com/volser/md-to-quill-delta#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.7.2",
+    "@types/webpack": "^4.32.2",
+    "coveralls": "^3.0.7",
+    "husky": "^3.0.9",
+    "jest": "^24.9.0",
+    "prettier": "1.18.2",
+    "pretty-quick": "^2.0.0",
+    "quill": "^2.0.0-dev.3",
+    "ts-jest": "^24.1.0",
+    "ts-loader": "^6.0.4",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.18.0",
+    "tslint-loader": "^3.5.4",
+    "typescript": "^3.6.3",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.7"
+  },
+  "dependencies": {
+    "quill-delta": "^4.2.1",
+    "remark-parse": "^7.0.1",
+    "unified": "^8.4.1",
+    "unist-util-visit": "^2.0.0"
+  }
+}

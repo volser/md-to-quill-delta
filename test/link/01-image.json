@@ -1,0 +1,13 @@
+[
+  {
+    "attributes": {
+      "alt": "bear"
+    },
+    "insert": {
+      "image": "https://placebear.com/g/200/300"
+    }
+  },
+  {
+    "insert": "\n"
+  }
+]

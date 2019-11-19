@@ -1,0 +1,10 @@
+[
+  { "insert": "ordinary " },
+  { "insert": "bold ", "attributes": { "bold": true } },
+  { "insert": "italic ", "attributes": { "bold": true, "italic": true } },
+  {
+    "insert": "strike",
+    "attributes": { "bold": true, "italic": true, "strike": true }
+  },
+  { "insert": "\n" }
+]

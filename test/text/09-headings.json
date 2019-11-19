@@ -1,0 +1,50 @@
+[
+  {
+    "attributes": {
+      "size": "huge"
+    },
+    "insert": "This is an "
+  },
+  {
+    "attributes": {
+      "size": "huge",
+      "bold": true
+    },
+    "insert": "H1"
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "attributes": {
+      "size": "large"
+    },
+    "insert": "This is an "
+  },
+  {
+    "attributes": {
+      "size": "large",
+      "bold": true
+    },
+    "insert": "H2"
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "attributes": {
+      "size": "large"
+    },
+    "insert": "This is an "
+  },
+  {
+    "attributes": {
+      "size": "large",
+      "bold": true
+    },
+    "insert": "H3"
+  },
+  {
+    "insert": "\n"
+  }
+]

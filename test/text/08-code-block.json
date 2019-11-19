@@ -1,0 +1,12 @@
+[
+  {
+    "insert": "a block of code"
+  },
+  {
+    "attributes": {
+      "code-block": true
+    },
+    "insert": "\n"
+  },
+  { "insert": "\n" }
+]

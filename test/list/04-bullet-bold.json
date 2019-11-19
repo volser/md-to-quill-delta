@@ -1,0 +1,23 @@
+[
+  {
+    "attributes": {
+      "bold": true
+    },
+    "insert": "milk"
+  },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "cheese"
+  },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  }
+]

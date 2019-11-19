@@ -1,0 +1,20 @@
+[
+  { "insert": "This is a list:" },
+  { "insert": "\n" },
+  { "insert": "item one" },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "item two"
+  },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  }
+]

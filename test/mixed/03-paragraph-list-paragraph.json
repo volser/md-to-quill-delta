@@ -1,0 +1,22 @@
+[
+  { "insert": "This is a paragraph" },
+  { "insert": "\n" },
+  { "insert": "item one" },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "item two"
+  },
+  {
+    "attributes": {
+      "list": "bullet"
+    },
+    "insert": "\n"
+  },
+  { "insert": "This is a paragraph too." },
+  { "insert": "\n" }
+]
