@@ -134,10 +134,6 @@ export class MarkdownToQuill {
   }
 
   private listVisitor(node: any) {
-    if (node.ordered && node.start !== 1) {
-      throw Error('Quill-Delta numbered lists must start from 1.');
-    }
-
     visit(node, 'listItem', n => this.listItemVisitor(node, n));
   }
 

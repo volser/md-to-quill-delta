@@ -1,0 +1,20 @@
+[
+  {
+    "insert": "milk"
+  },
+  {
+    "attributes": {
+      "list": "ordered"
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "cheese"
+  },
+  {
+    "attributes": {
+      "list": "ordered"
+    },
+    "insert": "\n"
+  }
+]
