@@ -8,6 +8,6 @@
 
 ```typescript
 import { MarkdownToQuill } from 'md-to-quill-delta';
-const converter = new MarkdownToQuill(t.markdown);
+const converter = new MarkdownToQuill(markdown);
 const ops = converter.convert();
 ```
