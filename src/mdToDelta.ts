@@ -11,7 +11,6 @@ function flatten(arr: any[]): any[] {
 type NodeHandler = (node: Parent, nextType: string, attributes: any) => Op[];
 
 export class MarkdownToQuill {
-  delta: Delta;
   options: { debug?: boolean };
   constructor(private md: string, options?: any) {
     this.options = { ...options };
@@ -21,65 +20,67 @@ export class MarkdownToQuill {
     const processor = unified().use(markdown);
     const tree: Parent = processor.parse(this.md) as Parent;
 
-    this.delta = new Delta();
     if (this.options.debug) {
       console.log('tree', tree);
     }
-    this.parseItems(tree.children as Parent[]);
-    return this.delta.ops;
+    const delta = this.parseItems(tree.children as Parent[]);
+    return delta.ops;
   }
 
-  private parseItems(items: Parent[]) {
+  private parseItems(items: Parent[]): Delta {
+    let delta = new Delta();
     for (let idx = 0; idx < items.length; idx++) {
       const child = items[idx];
       const nextType: string =
         idx + 1 < items.length ? items[idx + 1].type : 'lastOne';
 
       if (child.type === 'paragraph') {
-        this.paragraphVisitor(child);
-        this.delta.insert('\n');
+        delta = delta.concat(this.paragraphVisitor(child));
+        delta.insert('\n');
 
         if (
           nextType === 'paragraph' ||
           nextType === 'code' ||
           nextType === 'heading'
         ) {
-          this.delta.insert('\n');
+          delta.insert('\n');
         }
       } else if (child.type === 'list') {
-        this.listVisitor(child);
+        delta = delta.concat(this.listVisitor(child));
         if (nextType === 'list') {
-          this.delta.insert('\n');
+          delta.insert('\n');
         }
       } else if (child.type === 'code') {
         const lines = String(child.value).split('\n');
         lines.forEach(line => {
-          this.delta.push({ insert: line });
-          this.delta.push({ insert: '\n', attributes: { 'code-block': true } });
+          delta.push({ insert: line });
+          delta.push({ insert: '\n', attributes: { 'code-block': true } });
         });
 
         if (nextType === 'paragraph') {
-          this.delta.insert('\n');
+          delta.insert('\n');
         }
       } else if (child.type === 'heading') {
-        this.headingVisitor(child);
-        this.delta.insert('\n');
+        delta = delta.concat(this.headingVisitor(child));
+        delta.insert('\n');
       } else if (child.type === 'blockquote') {
-        this.paragraphVisitor(child);
-        this.delta.push({ insert: '\n', attributes: { blockquote: true } });
+        delta = delta.concat(this.paragraphVisitor(child));
+        delta.push({ insert: '\n', attributes: { blockquote: true } });
       } else if (child.type === 'thematicBreak') {
-        this.delta.insert({ divider: true });
-        this.delta.insert('\n');
+        delta.insert({ divider: true });
+        delta.insert('\n');
       } else {
-        this.delta.push({
+        delta.push({
           insert: String(child.value)
         });
         console.log(`Unsupported child type: ${child.type}, ${child.value}`);
       }
     }
+    return delta;
   }
 
-  private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0) {
+  private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0): Delta {
+    const delta = new Delta();
     const { children } = node;
     if (this.options.debug) {
       console.log('children', children);
@@ -135,19 +136,21 @@ export class MarkdownToQuill {
       const localOps = visitNode(child, initialOp);
 
       if (localOps instanceof Array) {
-        flatten(localOps).forEach(op => this.delta.push(op));
+        flatten(localOps).forEach(op => delta.push(op));
       } else {
-        this.delta.push(localOps);
+        delta.push(localOps);
       }
     }
+    return delta;
   }
 
-  private listItemVisitor(listNode: any, node: any, indent = 0) {
+  private listItemVisitor(listNode: any, node: any, indent = 0): Delta {
+    let delta = new Delta();
     for (const child of node.children) {
       if (child.type === 'list') {
-        this.listVisitor(child, indent + 1);
+        delta = delta.concat(this.listVisitor(child, indent + 1));
       } else {
-        this.paragraphVisitor(child);
+        delta = delta.concat(this.paragraphVisitor(child));
 
         let listAttribute = '';
         if (listNode.ordered) {
@@ -164,21 +167,31 @@ export class MarkdownToQuill {
           attributes['indent'] = indent;
         }
 
-        this.delta.push({ insert: '\n', attributes });
+        delta.push({ insert: '\n', attributes });
       }
     }
+    if (this.options.debug) {
+      console.log('list item', delta.ops);
+    }
+    return delta;
   }
 
-  private listVisitor(node: any, indent = 0) {
+  private listVisitor(node: any, indent = 0): Delta {
+    let delta = new Delta();
     node.children.forEach(n => {
       if (n.type === 'listItem') {
-        this.listItemVisitor(node, n, indent);
+        delta = delta.concat(this.listItemVisitor(node, n, indent));
       }
     });
+    if (this.options.debug) {
+      console.log('list', delta.ops);
+    }
+    return delta;
   }
 
-  private headingVisitor(node: any) {
-    this.paragraphVisitor(node);
-    this.delta.push({ insert: '\n', attributes: { header: node.depth || 1 } });
+  private headingVisitor(node: any): Delta {
+    const delta = this.paragraphVisitor(node);
+    delta.push({ insert: '\n', attributes: { header: node.depth || 1 } });
+    return delta;
   }
 }
