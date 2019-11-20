@@ -142,16 +142,7 @@ export class MarkdownToQuill {
   }
 
   private headingVisitor(node: any) {
-    const mapSize = (depth: number): string => {
-      switch (depth) {
-        case 1:
-          return 'huge';
-        default:
-          return 'large';
-      }
-    };
-
-    const size = mapSize(node.depth);
-    this.paragraphVisitor(node, { attributes: { size: size } });
+    this.paragraphVisitor(node);
+    this.ops.push({ insert: '\n', attributes: { header: node.depth || 1 } });
   }
 }

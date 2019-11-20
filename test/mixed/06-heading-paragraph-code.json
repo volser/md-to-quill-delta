@@ -1,23 +1,31 @@
 [
   {
-    "attributes": {
-      "size": "huge"
-    },
     "insert": "Now then"
   },
-  { "insert": "\n" },
+    { "insert": "\n", 
+      "attributes": {
+        "header": 1
+    }
+  },
+  { 
+    "insert": "\n"
+  },
   {
     "insert": "what do we do with a drunken sailor\nwhat do we do with a drunken sailor"
   },
   { "insert": "\n" },
   { "insert": "\n" },
   {
-    "attributes": {
-      "size": "large"
-    },
     "insert": "Ooops"
   },
-  { "insert": "\n" },
+  { "insert": "\n", 
+    "attributes": {
+      "header": 2
+    } 
+  },
+  { 
+    "insert": "\n"
+  },
   {
     "insert": "ponder this:"
   },
