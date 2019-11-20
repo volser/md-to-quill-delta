@@ -16,13 +16,15 @@ export class MarkdownToQuill {
     const tree: any = processor.parse(this.md);
 
     this.delta = new Delta();
+    this.parseItems(tree.children);
+    return this.delta.ops;
+  }
 
-    for (let idx = 0; idx < tree.children.length; idx++) {
-      const child = tree.children[idx];
+  private parseItems(items: any[]) {
+    for (let idx = 0; idx < items.length; idx++) {
+      const child = items[idx];
       const nextType: string =
-        idx + 1 < tree.children.length
-          ? tree.children[idx + 1].type
-          : 'lastOne';
+        idx + 1 < items.length ? items[idx + 1].type : 'lastOne';
 
       if (child.type === 'paragraph') {
         this.paragraphVisitor(child);
@@ -69,8 +71,6 @@ export class MarkdownToQuill {
         console.log(`Unsupported child type: ${child.type}, ${child.value}`);
       }
     }
-
-    return this.delta.ops;
   }
 
   private addNewline() {
