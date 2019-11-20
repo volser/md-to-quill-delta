@@ -71,14 +71,14 @@ export class MarkdownToQuill {
       }
     }
 
-    return this.delta.ops; //new Delta(this.ops).ops;
+    return this.delta.ops;
   }
 
   private addNewline() {
     this.delta.push({ insert: '\n' });
   }
 
-  private paragraphVisitor(node: any, initialOp: Op = {}) {
+  private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0) {
     const { children } = node;
 
     const visitNode = (node: any, op: Op): Op[] | Op => {
@@ -138,26 +138,39 @@ export class MarkdownToQuill {
     }
   }
 
-  private listItemVisitor(listNode: any, node: any) {
+  private listItemVisitor(listNode: any, node: any, indent = 0) {
     for (const child of node.children) {
-      visit(child, 'paragraph', n => this.paragraphVisitor(n));
-
-      let listAttribute = '';
-      if (listNode.ordered) {
-        listAttribute = 'ordered';
-      } else if (node.checked) {
-        listAttribute = 'checked';
-      } else if (node.checked === false) {
-        listAttribute = 'unchecked';
+      if (child.type === 'list') {
+        this.listVisitor(child, indent + 1);
       } else {
-        listAttribute = 'bullet';
+        visit(child, 'paragraph', n => this.paragraphVisitor(n));
+
+        let listAttribute = '';
+        if (listNode.ordered) {
+          listAttribute = 'ordered';
+        } else if (node.checked) {
+          listAttribute = 'checked';
+        } else if (node.checked === false) {
+          listAttribute = 'unchecked';
+        } else {
+          listAttribute = 'bullet';
+        }
+        const attributes = { list: listAttribute };
+        if (indent) {
+          attributes['indent'] = indent;
+        }
+
+        this.delta.push({ insert: '\n', attributes });
       }
-      this.delta.push({ insert: '\n', attributes: { list: listAttribute } });
     }
   }
 
-  private listVisitor(node: any) {
-    visit(node, 'listItem', n => this.listItemVisitor(node, n));
+  private listVisitor(node: any, indent = 0) {
+    node.children.forEach(n => {
+      if (n.type === 'listItem') {
+        this.listItemVisitor(node, n, indent);
+      }
+    });
   }
 
   private headingVisitor(node: any) {
