@@ -52,6 +52,9 @@ export class MarkdownToQuill {
       } else if (child.type === 'heading') {
         this.headingVisitor(child);
         this.addNewline();
+      } else if (child.type === 'blockquote') {
+        this.paragraphVisitor(child);
+        this.ops.push({ insert: '\n', attributes: { blockquote: true } });
       } else {
         throw new Error(`Unsupported child type: ${child.type}`);
       }
@@ -93,7 +96,8 @@ export class MarkdownToQuill {
           attributes: { ...op.attributes, font: 'monospace' }
         };
       } else {
-        throw new Error(`Unsupported note type in paragraph: ${node.type}`);
+        // throw new Error(`Unsupported note type in paragraph: ${node.type}`);
+        return visitChildren(node, op);
       }
       return op;
     };

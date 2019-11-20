@@ -1,0 +1,11 @@
+[
+  {
+    "insert": "quote"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "blockquote": true
+    }
+  }
+]
