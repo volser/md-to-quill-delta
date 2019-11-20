@@ -1,7 +1,7 @@
 [
   {
     "attributes": {
-      "font": "monospace"
+      "code": true
     },
     "insert": "super code"
   },

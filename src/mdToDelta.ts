@@ -2,25 +2,34 @@ import Op from 'quill-delta/dist/Op';
 import Delta from 'quill-delta';
 import unified from 'unified';
 import markdown from 'remark-parse';
+import { Parent } from 'unist';
 
 function flatten(arr: any[]): any[] {
   return arr.reduce((flat, next) => flat.concat(next), []);
 }
 
+type NodeHandler = (node: Parent, nextType: string, attributes: any) => Op[];
+
 export class MarkdownToQuill {
   delta: Delta;
-  constructor(private md: string) {}
+  options: { debug?: boolean };
+  constructor(private md: string, options?: any) {
+    this.options = { ...options };
+  }
 
   convert(): Op[] {
     const processor = unified().use(markdown);
-    const tree: any = processor.parse(this.md);
+    const tree: Parent = processor.parse(this.md) as Parent;
 
     this.delta = new Delta();
-    this.parseItems(tree.children);
+    if (this.options.debug) {
+      console.log('tree', tree);
+    }
+    this.parseItems(tree.children as Parent[]);
     return this.delta.ops;
   }
 
-  private parseItems(items: any[]) {
+  private parseItems(items: Parent[]) {
     for (let idx = 0; idx < items.length; idx++) {
       const child = items[idx];
       const nextType: string =
@@ -28,57 +37,53 @@ export class MarkdownToQuill {
 
       if (child.type === 'paragraph') {
         this.paragraphVisitor(child);
+        this.delta.insert('\n');
 
         if (
           nextType === 'paragraph' ||
           nextType === 'code' ||
           nextType === 'heading'
         ) {
-          this.addNewline();
-          this.addNewline();
-        } else if (nextType === 'lastOne' || nextType === 'list') {
-          this.addNewline();
+          this.delta.insert('\n');
         }
       } else if (child.type === 'list') {
         this.listVisitor(child);
         if (nextType === 'list') {
-          this.addNewline();
+          this.delta.insert('\n');
         }
       } else if (child.type === 'code') {
-        const lines = child.value.split('\n');
+        const lines = String(child.value).split('\n');
         lines.forEach(line => {
           this.delta.push({ insert: line });
           this.delta.push({ insert: '\n', attributes: { 'code-block': true } });
         });
 
-        if (nextType === 'paragraph' || nextType === 'lastOne') {
-          this.addNewline();
+        if (nextType === 'paragraph') {
+          this.delta.insert('\n');
         }
       } else if (child.type === 'heading') {
         this.headingVisitor(child);
-        this.addNewline();
+        this.delta.insert('\n');
       } else if (child.type === 'blockquote') {
         this.paragraphVisitor(child);
         this.delta.push({ insert: '\n', attributes: { blockquote: true } });
       } else if (child.type === 'thematicBreak') {
-        this.delta.insert('\n');
         this.delta.insert({ divider: true });
         this.delta.insert('\n');
       } else {
         this.delta.push({
-          insert: child.value
+          insert: String(child.value)
         });
         console.log(`Unsupported child type: ${child.type}, ${child.value}`);
       }
     }
   }
 
-  private addNewline() {
-    this.delta.push({ insert: '\n' });
-  }
-
   private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0) {
     const { children } = node;
+    if (this.options.debug) {
+      console.log('children', children);
+    }
 
     const visitNode = (node: any, op: Op): Op[] | Op => {
       if (node.type === 'text') {
@@ -103,7 +108,7 @@ export class MarkdownToQuill {
       } else if (node.type === 'inlineCode') {
         op = {
           insert: node.value,
-          attributes: { ...op.attributes, font: 'monospace' }
+          attributes: { ...op.attributes, code: true }
         };
       } else if (node.type === 'paragraph') {
         return visitChildren(node, op);
