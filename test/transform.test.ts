@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import Op from 'quill-delta/dist/Op';
+import Delta from 'quill-delta';
 import { MarkdownToQuill } from '../src/mdToDelta';
 interface Test {
   name: string;
@@ -58,7 +59,14 @@ describe('Remark-Delta Transformer', () => {
     test(`Markdown to Delta: ${t.name}`, () => {
       const converter = new MarkdownToQuill(t.markdown);
       const ops = converter.convert();
-      expect(ops).toEqual(t.ops);
+      const delta = new Delta();
+      t.ops.forEach(op => delta.push(op));
+      const expectOps = delta.ops;
+      const diff = delta.diff(new Delta(ops));
+      if (diff.ops.length) {
+        console.log(`diff: ${t.name}`, diff, ops, expectOps);
+      }
+      expect(ops).toEqual(expectOps);
     });
   }
 });

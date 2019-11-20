@@ -1,21 +1,22 @@
-import * as visit from 'unist-util-visit';
+import visit from 'unist-util-visit';
 import Op from 'quill-delta/dist/Op';
-import * as unified from 'unified';
-import * as markdown from 'remark-parse';
+import Delta from 'quill-delta';
+import unified from 'unified';
+import markdown from 'remark-parse';
 
 function flatten(arr: any[]): any[] {
   return arr.reduce((flat, next) => flat.concat(next), []);
 }
 
 export class MarkdownToQuill {
-  ops: Op[];
+  delta: Delta;
   constructor(private md: string) {}
 
   convert(): Op[] {
     const processor = unified().use(markdown);
     const tree: any = processor.parse(this.md);
 
-    this.ops = [];
+    this.delta = new Delta();
 
     for (let idx = 0; idx < tree.children.length; idx++) {
       const child = tree.children[idx];
@@ -45,8 +46,8 @@ export class MarkdownToQuill {
       } else if (child.type === 'code') {
         const lines = child.value.split('\n');
         lines.forEach(line => {
-          this.ops.push({ insert: line });
-          this.ops.push({ insert: '\n', attributes: { 'code-block': true } });
+          this.delta.push({ insert: line });
+          this.delta.push({ insert: '\n', attributes: { 'code-block': true } });
         });
 
         if (nextType === 'paragraph' || nextType === 'lastOne') {
@@ -57,17 +58,20 @@ export class MarkdownToQuill {
         this.addNewline();
       } else if (child.type === 'blockquote') {
         this.paragraphVisitor(child);
-        this.ops.push({ insert: '\n', attributes: { blockquote: true } });
+        this.delta.push({ insert: '\n', attributes: { blockquote: true } });
       } else {
-        throw new Error(`Unsupported child type: ${child.type}`);
+        this.delta.push({
+          insert: child.value
+        });
+        console.log(`Unsupported child type: ${child.type}, ${child.value}`);
       }
     }
 
-    return this.ops;
+    return this.delta.ops; //new Delta(this.ops).ops;
   }
 
   private addNewline() {
-    this.ops.push({ insert: '\n' });
+    this.delta.push({ insert: '\n' });
   }
 
   private paragraphVisitor(node: any, initialOp: Op = {}) {
@@ -98,9 +102,17 @@ export class MarkdownToQuill {
           insert: node.value,
           attributes: { ...op.attributes, font: 'monospace' }
         };
-      } else {
-        // throw new Error(`Unsupported note type in paragraph: ${node.type}`);
+      } else if (node.type === 'paragraph') {
         return visitChildren(node, op);
+      } else {
+        if (node.value) {
+          op = {
+            insert: node.value
+          };
+        }
+        console.log(
+          `Unsupported note type in paragraph: ${node.type}, ${node.value}`
+        );
       }
       return op;
     };
@@ -115,9 +127,9 @@ export class MarkdownToQuill {
       const localOps = visitNode(child, initialOp);
 
       if (localOps instanceof Array) {
-        flatten(localOps).forEach(op => this.ops.push(op));
+        flatten(localOps).forEach(op => this.delta.push(op));
       } else {
-        this.ops.push(localOps);
+        this.delta.push(localOps);
       }
     }
   }
@@ -136,7 +148,7 @@ export class MarkdownToQuill {
       } else {
         listAttribute = 'bullet';
       }
-      this.ops.push({ insert: '\n', attributes: { list: listAttribute } });
+      this.delta.push({ insert: '\n', attributes: { list: listAttribute } });
     }
   }
 
@@ -146,6 +158,6 @@ export class MarkdownToQuill {
 
   private headingVisitor(node: any) {
     this.paragraphVisitor(node);
-    this.ops.push({ insert: '\n', attributes: { header: node.depth || 1 } });
+    this.delta.push({ insert: '\n', attributes: { header: node.depth || 1 } });
   }
 }

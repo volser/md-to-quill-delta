@@ -1,0 +1,6 @@
+[
+    { "insert": "When you " },
+    { "insert": "do", "attributes": {"italic": true} },
+    { "insert": " want to insert a <br /> break tag using Markdown, you end a line with two or more spaces, then type return." },
+    { "insert": "\n" }
+]
