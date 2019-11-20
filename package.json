@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "quill-delta": "^4.2.1",
-    "remark-parse": "^7.0.1",
-    "unified": "^8.4.1"
+    "remark-parse": "^7.0.2",
+    "unified": "^8.4.2"
   }
 }
