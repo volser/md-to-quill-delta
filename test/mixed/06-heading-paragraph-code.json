@@ -2,12 +2,13 @@
   {
     "insert": "Now then"
   },
-    { "insert": "\n", 
-      "attributes": {
-        "header": 1
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
     }
   },
-  { 
+  {
     "insert": "\n"
   },
   {
@@ -18,12 +19,13 @@
   {
     "insert": "Ooops"
   },
-  { "insert": "\n", 
+  {
+    "insert": "\n",
     "attributes": {
       "header": 2
-    } 
+    }
   },
-  { 
+  {
     "insert": "\n"
   },
   {

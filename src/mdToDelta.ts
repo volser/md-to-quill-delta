@@ -59,6 +59,10 @@ export class MarkdownToQuill {
       } else if (child.type === 'blockquote') {
         this.paragraphVisitor(child);
         this.delta.push({ insert: '\n', attributes: { blockquote: true } });
+      } else if (child.type === 'thematicBreak') {
+        this.delta.insert('\n');
+        this.delta.insert({ divider: true });
+        this.delta.insert('\n');
       } else {
         this.delta.push({
           insert: child.value
