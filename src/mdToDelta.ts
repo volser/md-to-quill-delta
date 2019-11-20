@@ -1,4 +1,3 @@
-import visit from 'unist-util-visit';
 import Op from 'quill-delta/dist/Op';
 import Delta from 'quill-delta';
 import unified from 'unified';
@@ -143,7 +142,7 @@ export class MarkdownToQuill {
       if (child.type === 'list') {
         this.listVisitor(child, indent + 1);
       } else {
-        visit(child, 'paragraph', n => this.paragraphVisitor(n));
+        this.paragraphVisitor(child);
 
         let listAttribute = '';
         if (listNode.ordered) {
