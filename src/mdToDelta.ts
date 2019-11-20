@@ -43,8 +43,11 @@ export class MarkdownToQuill {
           this.addNewline();
         }
       } else if (child.type === 'code') {
-        this.ops.push({ insert: child.value });
-        this.ops.push({ insert: '\n', attributes: { 'code-block': true } });
+        const lines = child.value.split('\n');
+        lines.forEach(line => {
+          this.ops.push({ insert: line });
+          this.ops.push({ insert: '\n', attributes: { 'code-block': true } });
+        });
 
         if (nextType === 'paragraph' || nextType === 'lastOne') {
           this.addNewline();
