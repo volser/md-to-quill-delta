@@ -30,81 +30,83 @@ export class MarkdownToQuill {
   ): Delta {
     const { children } = node as any;
     let delta = new Delta();
-    for (let idx = 0; idx < children.length; idx++) {
-      const child = children[idx];
-      const nextType: string =
-        idx + 1 < children.length ? children[idx + 1].type : 'lastOne';
+    if (children) {
+      for (let idx = 0; idx < children.length; idx++) {
+        const child = children[idx];
+        const nextType: string =
+          idx + 1 < children.length ? children[idx + 1].type : 'lastOne';
 
-      switch (child.type) {
-        case 'paragraph':
-          delta = delta.concat(
-            this.convertChildren(node, child, op, indent + 1)
-          );
-          if (!parent) {
-            delta.insert('\n');
+        switch (child.type) {
+          case 'paragraph':
+            delta = delta.concat(
+              this.convertChildren(node, child, op, indent + 1)
+            );
+            if (!parent) {
+              delta.insert('\n');
 
-            if (
-              nextType === 'paragraph' ||
-              nextType === 'code' ||
-              nextType === 'heading'
-            ) {
+              if (
+                nextType === 'paragraph' ||
+                nextType === 'code' ||
+                nextType === 'heading'
+              ) {
+                delta.insert('\n');
+              }
+            }
+            break;
+          case 'code':
+            const lines = String(child.value).split('\n');
+            lines.forEach(line => {
+              delta.push({ insert: line });
+              delta.push({ insert: '\n', attributes: { 'code-block': true } });
+            });
+
+            if (nextType === 'paragraph') {
               delta.insert('\n');
             }
-          }
-          break;
-        case 'code':
-          const lines = String(child.value).split('\n');
-          lines.forEach(line => {
-            delta.push({ insert: line });
-            delta.push({ insert: '\n', attributes: { 'code-block': true } });
-          });
-
-          if (nextType === 'paragraph') {
+            break;
+          case 'list':
+            delta = delta.concat(this.convertChildren(node, child, op, indent));
+            if (nextType === 'list') {
+              delta.insert('\n');
+            }
+            break;
+          case 'listItem':
+            delta = delta.concat(this.convertListItem(node, child, indent));
+            break;
+          case 'heading':
+            delta = delta.concat(
+              this.convertChildren(node, child, op, indent + 1)
+            );
+            delta.push({
+              insert: '\n',
+              attributes: { header: child.depth || 1 }
+            });
             delta.insert('\n');
-          }
-          break;
-        case 'list':
-          delta = delta.concat(this.convertChildren(node, child, op, indent));
-          if (nextType === 'list') {
+            break;
+          case 'blockquote':
+            delta = delta.concat(
+              this.convertChildren(node, child, op, indent + 1)
+            );
+            delta.push({ insert: '\n', attributes: { blockquote: true } });
+            break;
+          case 'thematicBreak':
+            delta.insert({ divider: true });
             delta.insert('\n');
-          }
-          break;
-        case 'listItem':
-          delta = delta.concat(this.convertListItem(node, child, indent));
-          break;
-        case 'heading':
-          delta = delta.concat(
-            this.convertChildren(node, child, op, indent + 1)
-          );
-          delta.push({
-            insert: '\n',
-            attributes: { header: child.depth || 1 }
-          });
-          delta.insert('\n');
-          break;
-        case 'blockquote':
-          delta = delta.concat(
-            this.convertChildren(node, child, op, indent + 1)
-          );
-          delta.push({ insert: '\n', attributes: { blockquote: true } });
-          break;
-        case 'thematicBreak':
-          delta.insert({ divider: true });
-          delta.insert('\n');
-          break;
-        case 'image':
-          return this.embedFormat(
-            child,
-            op,
-            { image: child.url },
-            child.alt ? { alt: child.alt } : null
-          );
+            break;
+          case 'image':
+            return this.embedFormat(
+              child,
+              op,
+              { image: child.url },
+              child.alt ? { alt: child.alt } : null
+            );
 
-        default:
-          const d = this.convertInline(parent, child, op);
-          if (d) {
-            delta = delta.concat(d);
-          }
+          default:
+            const d = this.convertInline(parent, child, op);
+            if (d) {
+              delta = delta.concat(d);
+            }
+        }
       }
     }
     return delta;
