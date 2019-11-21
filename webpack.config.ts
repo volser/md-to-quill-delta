@@ -4,7 +4,8 @@ module.exports = {
     path: __dirname + '/dist/umd',
     filename: 'index.js',
     libraryTarget: 'umd',
-    library: 'mdToQuillDelta'
+    library: 'mdToQuillDelta',
+    globalObject: 'this'
   },
   module: {
     rules: [
