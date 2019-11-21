@@ -8,10 +8,11 @@ function flatten(arr: any[]): any[] {
   return arr.reduce((flat, next) => flat.concat(next), []);
 }
 
-type NodeHandler = (node: Parent, nextType: string, attributes: any) => Op[];
+type NodeHandler = (node: Parent, nextType: string, parentOp: Op) => Op[];
 
 export class MarkdownToQuill {
   options: { debug?: boolean };
+
   constructor(private md: string, options?: any) {
     this.options = { ...options };
   }
@@ -27,120 +28,145 @@ export class MarkdownToQuill {
     return delta.ops;
   }
 
-  private parseItems(items: Parent[]): Delta {
+  private parseItems(items: Parent[], parentOp?: Op): Delta {
     let delta = new Delta();
     for (let idx = 0; idx < items.length; idx++) {
       const child = items[idx];
       const nextType: string =
         idx + 1 < items.length ? items[idx + 1].type : 'lastOne';
 
-      if (child.type === 'paragraph') {
-        delta = delta.concat(this.paragraphVisitor(child));
-        delta.insert('\n');
+      switch (child.type) {
+        case 'paragraph':
+          delta = delta.concat(this.paragraphVisitor(child));
+          delta.insert('\n');
 
-        if (
-          nextType === 'paragraph' ||
-          nextType === 'code' ||
-          nextType === 'heading'
-        ) {
-          delta.insert('\n');
-        }
-      } else if (child.type === 'list') {
-        delta = delta.concat(this.listVisitor(child));
-        if (nextType === 'list') {
-          delta.insert('\n');
-        }
-      } else if (child.type === 'code') {
-        const lines = String(child.value).split('\n');
-        lines.forEach(line => {
-          delta.push({ insert: line });
-          delta.push({ insert: '\n', attributes: { 'code-block': true } });
-        });
+          if (
+            nextType === 'paragraph' ||
+            nextType === 'code' ||
+            nextType === 'heading'
+          ) {
+            delta.insert('\n');
+          }
+          break;
+        case 'code':
+          const lines = String(child.value).split('\n');
+          lines.forEach(line => {
+            delta.push({ insert: line });
+            delta.push({ insert: '\n', attributes: { 'code-block': true } });
+          });
 
-        if (nextType === 'paragraph') {
+          if (nextType === 'paragraph') {
+            delta.insert('\n');
+          }
+          break;
+        case 'list':
+          delta = delta.concat(this.listVisitor(child));
+          if (nextType === 'list') {
+            delta.insert('\n');
+          }
+          break;
+        case 'heading':
+          delta = delta.concat(this.paragraphVisitor(child));
+          delta.push({
+            insert: '\n',
+            attributes: { header: child.depth || 1 }
+          });
           delta.insert('\n');
-        }
-      } else if (child.type === 'heading') {
-        delta = delta.concat(this.headingVisitor(child));
-        delta.insert('\n');
-      } else if (child.type === 'blockquote') {
-        delta = delta.concat(this.paragraphVisitor(child));
-        delta.push({ insert: '\n', attributes: { blockquote: true } });
-      } else if (child.type === 'thematicBreak') {
-        delta.insert({ divider: true });
-        delta.insert('\n');
-      } else {
-        delta.push({
-          insert: String(child.value)
-        });
-        console.log(`Unsupported child type: ${child.type}, ${child.value}`);
+          break;
+        case 'blockquote':
+          delta = delta.concat(this.paragraphVisitor(child));
+          delta.push({ insert: '\n', attributes: { blockquote: true } });
+          break;
+        case 'thematicBreak':
+          delta.insert({ divider: true });
+          delta.insert('\n');
+          break;
+        default:
+          delta.push({
+            insert: String(child.value)
+          });
+          console.log(`Unsupported child type: ${child.type}, ${child.value}`);
       }
     }
     return delta;
   }
 
+  private visitChildren(node: any, op: Op): Op[] {
+    const { children } = node;
+    const ops = [];
+    for (const child of children) {
+      const localOps = this.visitNode(child, op);
+
+      if (localOps instanceof Array) {
+        flatten(localOps).forEach(op => ops.push(op));
+      } else {
+        ops.push(localOps);
+      }
+    }
+    return ops;
+  }
+
+  private inlineFormat(node: any, op: Op, attributes: any): Op[] | Op {
+    const text =
+      node.value && typeof node.value === 'string' ? node.value : null;
+    const newAttributes = { ...op.attributes, ...attributes };
+    op = { ...op };
+    if (text) {
+      op.insert = text;
+    }
+    if (Object.keys(newAttributes).length) {
+      op.attributes = newAttributes;
+    }
+    return node.children ? this.visitChildren(node, op) : op.insert ? op : null;
+  }
+
+  private embedFormat(
+    node: any,
+    op: Op,
+    value: any,
+    attributes?: any
+  ): Op[] | Op {
+    return { insert: value, attributes: { ...op.attributes, ...attributes } };
+  }
+
+  private visitNode(node: any, op: Op): Op[] | Op {
+    switch (node.type) {
+      case 'strong':
+        return this.inlineFormat(node, op, { bold: true });
+      case 'emphasis':
+        return this.inlineFormat(node, op, { italic: true });
+      case 'delete':
+        return this.inlineFormat(node, op, { strike: true });
+      case 'inlineCode':
+        return this.inlineFormat(node, op, { code: true });
+      case 'link':
+        return this.inlineFormat(node, op, { link: node.url });
+      case 'image':
+        return this.embedFormat(
+          node,
+          op,
+          { image: node.url },
+          node.alt ? { alt: node.alt } : null
+        );
+      case 'paragraph':
+        return this.visitChildren(node, op);
+      case 'text':
+      default:
+        return this.inlineFormat(node, op, {});
+    }
+  }
+
   private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0): Delta {
-    const delta = new Delta();
+    let delta = new Delta();
     const { children } = node;
     if (this.options.debug) {
       console.log('children', children);
     }
 
-    const visitNode = (node: any, op: Op): Op[] | Op => {
-      if (node.type === 'text') {
-        op = { ...op, insert: node.value };
-      } else if (node.type === 'strong') {
-        op = { ...op, attributes: { ...op.attributes, bold: true } };
-        return visitChildren(node, op);
-      } else if (node.type === 'emphasis') {
-        op = { ...op, attributes: { ...op.attributes, italic: true } };
-        return visitChildren(node, op);
-      } else if (node.type === 'delete') {
-        op = { ...op, attributes: { ...op.attributes, strike: true } };
-        return visitChildren(node, op);
-      } else if (node.type === 'image') {
-        op = { insert: { image: node.url } };
-        if (node.alt) {
-          op = { ...op, attributes: { alt: node.alt } };
-        }
-      } else if (node.type === 'link') {
-        const text = visitChildren(node, op);
-        op = { ...text, attributes: { ...op.attributes, link: node.url } };
-      } else if (node.type === 'inlineCode') {
-        op = {
-          insert: node.value,
-          attributes: { ...op.attributes, code: true }
-        };
-      } else if (node.type === 'paragraph') {
-        return visitChildren(node, op);
-      } else {
-        if (node.value) {
-          op = {
-            insert: node.value
-          };
-        }
-        console.log(
-          `Unsupported note type in paragraph: ${node.type}, ${node.value}`
-        );
-      }
-      return op;
-    };
+    const ops = this.visitChildren(node, initialOp);
+    ops.forEach(op => delta.push(op));
 
-    const visitChildren = (node: any, op: Op): Op[] => {
-      const { children } = node;
-      const ops = children.map((child: any) => visitNode(child, op));
-      return ops.length === 1 ? ops[0] : ops;
-    };
-
-    for (const child of children) {
-      const localOps = visitNode(child, initialOp);
-
-      if (localOps instanceof Array) {
-        flatten(localOps).forEach(op => delta.push(op));
-      } else {
-        delta.push(localOps);
-      }
-    }
+    // delta = delta.concat(new Delta(this.visitChildren(node, initialOp)));
     return delta;
   }
 
@@ -186,12 +212,6 @@ export class MarkdownToQuill {
     if (this.options.debug) {
       console.log('list', delta.ops);
     }
-    return delta;
-  }
-
-  private headingVisitor(node: any): Delta {
-    const delta = this.paragraphVisitor(node);
-    delta.push({ insert: '\n', attributes: { header: node.depth || 1 } });
     return delta;
   }
 }

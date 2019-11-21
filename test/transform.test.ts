@@ -57,7 +57,7 @@ describe('Remark-Delta Transformer', () => {
 
   for (const t of tests) {
     test(`Markdown to Delta: ${t.name}`, () => {
-      const debug = t.name === 'list/02-bullet';
+      const debug = t.name === 'text/11-thematic-break';
       const converter = new MarkdownToQuill(t.markdown, {
         debug
       });
@@ -67,7 +67,7 @@ describe('Remark-Delta Transformer', () => {
       const expectOps = delta.ops;
       // const diff = delta.diff(new Delta(ops));
       if (debug) {
-        console.log(`debug: ${t.name}`, ops, expectOps);
+        console.log(`debug: ${t.name}`, '\n', ops, '\n', expectOps);
       }
       expect(ops).toEqual(expectOps);
     });
