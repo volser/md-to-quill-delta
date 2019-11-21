@@ -57,7 +57,7 @@ describe('Remark-Delta Transformer', () => {
 
   for (const t of tests) {
     test(`Markdown to Delta: ${t.name}`, () => {
-      const debug = t.name === 'text/11-thematic-break';
+      const debug = t.name === 'text/08-blockquote';
       const converter = new MarkdownToQuill(t.markdown, {
         debug
       });

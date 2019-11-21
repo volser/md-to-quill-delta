@@ -4,12 +4,6 @@ import unified from 'unified';
 import markdown from 'remark-parse';
 import { Parent } from 'unist';
 
-function flatten(arr: any[]): any[] {
-  return arr.reduce((flat, next) => flat.concat(next), []);
-}
-
-type NodeHandler = (node: Parent, nextType: string, parentOp: Op) => Op[];
-
 export class MarkdownToQuill {
   options: { debug?: boolean };
 
@@ -24,28 +18,38 @@ export class MarkdownToQuill {
     if (this.options.debug) {
       console.log('tree', tree);
     }
-    const delta = this.parseItems(tree.children as Parent[]);
+    const delta = this.convertChildren(null, tree, {});
     return delta.ops;
   }
 
-  private parseItems(items: Parent[], parentOp?: Op): Delta {
+  private convertChildren(
+    parent: Node | Parent,
+    node: Node | Parent,
+    op: Op = {},
+    indent = 0
+  ): Delta {
+    const { children } = node as any;
     let delta = new Delta();
-    for (let idx = 0; idx < items.length; idx++) {
-      const child = items[idx];
+    for (let idx = 0; idx < children.length; idx++) {
+      const child = children[idx];
       const nextType: string =
-        idx + 1 < items.length ? items[idx + 1].type : 'lastOne';
+        idx + 1 < children.length ? children[idx + 1].type : 'lastOne';
 
       switch (child.type) {
         case 'paragraph':
-          delta = delta.concat(this.paragraphVisitor(child));
-          delta.insert('\n');
-
-          if (
-            nextType === 'paragraph' ||
-            nextType === 'code' ||
-            nextType === 'heading'
-          ) {
+          delta = delta.concat(
+            this.convertChildren(node, child, op, indent + 1)
+          );
+          if (!parent) {
             delta.insert('\n');
+
+            if (
+              nextType === 'paragraph' ||
+              nextType === 'code' ||
+              nextType === 'heading'
+            ) {
+              delta.insert('\n');
+            }
           }
           break;
         case 'code':
@@ -60,13 +64,18 @@ export class MarkdownToQuill {
           }
           break;
         case 'list':
-          delta = delta.concat(this.listVisitor(child));
+          delta = delta.concat(this.convertChildren(node, child, op, indent));
           if (nextType === 'list') {
             delta.insert('\n');
           }
           break;
+        case 'listItem':
+          delta = delta.concat(this.convertListItem(node, child, indent));
+          break;
         case 'heading':
-          delta = delta.concat(this.paragraphVisitor(child));
+          delta = delta.concat(
+            this.convertChildren(node, child, op, indent + 1)
+          );
           delta.push({
             insert: '\n',
             attributes: { header: child.depth || 1 }
@@ -74,39 +83,52 @@ export class MarkdownToQuill {
           delta.insert('\n');
           break;
         case 'blockquote':
-          delta = delta.concat(this.paragraphVisitor(child));
+          delta = delta.concat(
+            this.convertChildren(node, child, op, indent + 1)
+          );
           delta.push({ insert: '\n', attributes: { blockquote: true } });
           break;
         case 'thematicBreak':
           delta.insert({ divider: true });
           delta.insert('\n');
           break;
+        case 'image':
+          return this.embedFormat(
+            child,
+            op,
+            { image: child.url },
+            child.alt ? { alt: child.alt } : null
+          );
+
         default:
-          delta.push({
-            insert: String(child.value)
-          });
-          console.log(`Unsupported child type: ${child.type}, ${child.value}`);
+          const d = this.convertInline(parent, child, op);
+          if (d) {
+            delta = delta.concat(d);
+          }
       }
     }
     return delta;
   }
 
-  private visitChildren(node: any, op: Op): Op[] {
-    const { children } = node;
-    const ops = [];
-    for (const child of children) {
-      const localOps = this.visitNode(child, op);
-
-      if (localOps instanceof Array) {
-        flatten(localOps).forEach(op => ops.push(op));
-      } else {
-        ops.push(localOps);
-      }
+  private convertInline(parent: any, node: any, op: Op): Delta {
+    switch (node.type) {
+      case 'strong':
+        return this.inlineFormat(parent, node, op, { bold: true });
+      case 'emphasis':
+        return this.inlineFormat(parent, node, op, { italic: true });
+      case 'delete':
+        return this.inlineFormat(parent, node, op, { strike: true });
+      case 'inlineCode':
+        return this.inlineFormat(parent, node, op, { code: true });
+      case 'link':
+        return this.inlineFormat(parent, node, op, { link: node.url });
+      case 'text':
+      default:
+        return this.inlineFormat(parent, node, op, {});
     }
-    return ops;
   }
 
-  private inlineFormat(node: any, op: Op, attributes: any): Op[] | Op {
+  private inlineFormat(parent: any, node: any, op: Op, attributes: any): Delta {
     const text =
       node.value && typeof node.value === 'string' ? node.value : null;
     const newAttributes = { ...op.attributes, ...attributes };
@@ -117,69 +139,27 @@ export class MarkdownToQuill {
     if (Object.keys(newAttributes).length) {
       op.attributes = newAttributes;
     }
-    return node.children ? this.visitChildren(node, op) : op.insert ? op : null;
+    return node.children
+      ? this.convertChildren(parent, node, op)
+      : op.insert
+      ? new Delta().push(op)
+      : null;
   }
 
-  private embedFormat(
-    node: any,
-    op: Op,
-    value: any,
-    attributes?: any
-  ): Op[] | Op {
-    return { insert: value, attributes: { ...op.attributes, ...attributes } };
+  private embedFormat(node: any, op: Op, value: any, attributes?: any): Delta {
+    return new Delta().push({
+      insert: value,
+      attributes: { ...op.attributes, ...attributes }
+    });
   }
 
-  private visitNode(node: any, op: Op): Op[] | Op {
-    switch (node.type) {
-      case 'strong':
-        return this.inlineFormat(node, op, { bold: true });
-      case 'emphasis':
-        return this.inlineFormat(node, op, { italic: true });
-      case 'delete':
-        return this.inlineFormat(node, op, { strike: true });
-      case 'inlineCode':
-        return this.inlineFormat(node, op, { code: true });
-      case 'link':
-        return this.inlineFormat(node, op, { link: node.url });
-      case 'image':
-        return this.embedFormat(
-          node,
-          op,
-          { image: node.url },
-          node.alt ? { alt: node.alt } : null
-        );
-      case 'paragraph':
-        return this.visitChildren(node, op);
-      case 'text':
-      default:
-        return this.inlineFormat(node, op, {});
-    }
-  }
-
-  private paragraphVisitor(node: any, initialOp: Op = {}, indent = 0): Delta {
-    let delta = new Delta();
-    const { children } = node;
-    if (this.options.debug) {
-      console.log('children', children);
-    }
-
-    const ops = this.visitChildren(node, initialOp);
-    ops.forEach(op => delta.push(op));
-
-    // delta = delta.concat(new Delta(this.visitChildren(node, initialOp)));
-    return delta;
-  }
-
-  private listItemVisitor(listNode: any, node: any, indent = 0): Delta {
+  private convertListItem(parent: any, node: any, indent = 0): Delta {
     let delta = new Delta();
     for (const child of node.children) {
-      if (child.type === 'list') {
-        delta = delta.concat(this.listVisitor(child, indent + 1));
-      } else {
-        delta = delta.concat(this.paragraphVisitor(child));
-
+      delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
+      if (child.type !== 'list') {
         let listAttribute = '';
-        if (listNode.ordered) {
+        if (parent.ordered) {
           listAttribute = 'ordered';
         } else if (node.checked) {
           listAttribute = 'checked';
@@ -198,19 +178,6 @@ export class MarkdownToQuill {
     }
     if (this.options.debug) {
       console.log('list item', delta.ops);
-    }
-    return delta;
-  }
-
-  private listVisitor(node: any, indent = 0): Delta {
-    let delta = new Delta();
-    node.children.forEach(n => {
-      if (n.type === 'listItem') {
-        delta = delta.concat(this.listItemVisitor(node, n, indent));
-      }
-    });
-    if (this.options.debug) {
-      console.log('list', delta.ops);
     }
     return delta;
   }
