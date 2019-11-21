@@ -1,0 +1,38 @@
+[
+  {
+    "insert": "line 1"
+  },
+  {
+    "attributes": {
+      "code-block": true
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "line 2"
+  },
+  {
+    "attributes": {
+      "code-block": true
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "\nline 3"
+  },
+  {
+    "attributes": {
+      "code-block": true
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "line 4"
+  },
+  {
+    "attributes": {
+      "code-block": true
+    },
+    "insert": "\n"
+  }
+]

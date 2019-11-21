@@ -67,7 +67,7 @@ describe('Remark-Delta Transformer', () => {
       const expectOps = delta.ops;
       // const diff = delta.diff(new Delta(ops));
       if (debug) {
-        console.log(`debug: ${t.name}`, '\n', ops, '\n', expectOps);
+        console.log(`debug: ${t.name}`, '\n\n', ops, '\n\n', expectOps);
       }
       expect(ops).toEqual(expectOps);
     });

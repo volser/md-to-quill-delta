@@ -31,6 +31,9 @@ export class MarkdownToQuill {
     const { children } = node as any;
     let delta = new Delta();
     if (children) {
+      if (this.options.debug) {
+        console.log('children:', children);
+      }
       for (let idx = 0; idx < children.length; idx++) {
         const child = children[idx];
         const nextType: string =
@@ -60,7 +63,7 @@ export class MarkdownToQuill {
               delta.push({ insert: '\n', attributes: { 'code-block': true } });
             });
 
-            if (nextType === 'paragraph') {
+            if (nextType === 'paragraph' || nextType === 'code') {
               delta.insert('\n');
             }
             break;
@@ -100,9 +103,8 @@ export class MarkdownToQuill {
               { image: child.url },
               child.alt ? { alt: child.alt } : null
             );
-
           default:
-            const d = this.convertInline(parent, child, op);
+            const d = this.convertInline(node, child, op);
             if (d) {
               delta = delta.concat(d);
             }
@@ -112,21 +114,21 @@ export class MarkdownToQuill {
     return delta;
   }
 
-  private convertInline(parent: any, node: any, op: Op): Delta {
-    switch (node.type) {
+  private convertInline(parent: any, child: any, op: Op): Delta {
+    switch (child.type) {
       case 'strong':
-        return this.inlineFormat(parent, node, op, { bold: true });
+        return this.inlineFormat(parent, child, op, { bold: true });
       case 'emphasis':
-        return this.inlineFormat(parent, node, op, { italic: true });
+        return this.inlineFormat(parent, child, op, { italic: true });
       case 'delete':
-        return this.inlineFormat(parent, node, op, { strike: true });
+        return this.inlineFormat(parent, child, op, { strike: true });
       case 'inlineCode':
-        return this.inlineFormat(parent, node, op, { code: true });
+        return this.inlineFormat(parent, child, op, { code: true });
       case 'link':
-        return this.inlineFormat(parent, node, op, { link: node.url });
+        return this.inlineFormat(parent, child, op, { link: child.url });
       case 'text':
       default:
-        return this.inlineFormat(parent, node, op, {});
+        return this.inlineFormat(parent, child, op, {});
     }
   }
 
