@@ -7,6 +7,8 @@ import { Parent } from 'unist';
 export class MarkdownToQuill {
   options: { debug?: boolean };
 
+  blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list'];
+
   constructor(private md: string, options?: any) {
     this.options = { ...options };
   }
@@ -34,11 +36,11 @@ export class MarkdownToQuill {
       if (this.options.debug) {
         console.log('children:', children);
       }
-      for (let idx = 0; idx < children.length; idx++) {
-        const child = children[idx];
-        const nextType: string =
-          idx + 1 < children.length ? children[idx + 1].type : 'lastOne';
-
+      let prevType;
+      children.forEach(child => {
+        if (this.isBlock(child.type) && this.isBlock(prevType)) {
+          delta.insert('\n');
+        }
         switch (child.type) {
           case 'paragraph':
             delta = delta.concat(
@@ -46,14 +48,6 @@ export class MarkdownToQuill {
             );
             if (!parent) {
               delta.insert('\n');
-
-              if (
-                nextType === 'paragraph' ||
-                nextType === 'code' ||
-                nextType === 'heading'
-              ) {
-                delta.insert('\n');
-              }
             }
             break;
           case 'code':
@@ -63,15 +57,9 @@ export class MarkdownToQuill {
               delta.push({ insert: '\n', attributes: { 'code-block': true } });
             });
 
-            if (nextType === 'paragraph' || nextType === 'code') {
-              delta.insert('\n');
-            }
             break;
           case 'list':
             delta = delta.concat(this.convertChildren(node, child, op, indent));
-            if (nextType === 'list') {
-              delta.insert('\n');
-            }
             break;
           case 'listItem':
             delta = delta.concat(this.convertListItem(node, child, indent));
@@ -84,7 +72,6 @@ export class MarkdownToQuill {
               insert: '\n',
               attributes: { header: child.depth || 1 }
             });
-            delta.insert('\n');
             break;
           case 'blockquote':
             delta = delta.concat(
@@ -97,11 +84,13 @@ export class MarkdownToQuill {
             delta.insert('\n');
             break;
           case 'image':
-            return this.embedFormat(
-              child,
-              op,
-              { image: child.url },
-              child.alt ? { alt: child.alt } : null
+            delta = delta.concat(
+              this.embedFormat(
+                child,
+                op,
+                { image: child.url },
+                child.alt ? { alt: child.alt } : null
+              )
             );
           default:
             const d = this.convertInline(node, child, op);
@@ -109,9 +98,15 @@ export class MarkdownToQuill {
               delta = delta.concat(d);
             }
         }
-      }
+
+        prevType = child.type;
+      });
     }
     return delta;
+  }
+
+  private isBlock(type: string) {
+    return this.blocks.includes(type);
   }
 
   private convertInline(parent: any, child: any, op: Op): Delta {
