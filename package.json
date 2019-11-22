@@ -23,8 +23,8 @@
   },
   "keywords": [
     "quill",
-    "table",
-    "ui"
+    "delta",
+    "markdown"
   ],
   "author": "Sergiy VOloshyn <sergey.voloshyn@gmail.com>",
   "license": "BSD-3-Clause",
