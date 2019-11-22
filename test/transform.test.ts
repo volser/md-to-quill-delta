@@ -58,10 +58,10 @@ describe('Remark-Delta Transformer', () => {
   for (const t of tests) {
     test(`Markdown to Delta: ${t.name}`, () => {
       const debug = t.name === '';
-      const converter = new MarkdownToQuill(t.markdown, {
+      const converter = new MarkdownToQuill({
         debug
       });
-      const ops = converter.convert();
+      const ops = converter.convert(t.markdown);
       const delta = new Delta();
       t.ops.forEach(op => delta.push(op));
       const expectOps = delta.ops;

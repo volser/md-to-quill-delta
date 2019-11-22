@@ -4,18 +4,22 @@ import unified from 'unified';
 import markdown from 'remark-parse';
 import { Parent } from 'unist';
 
+export interface MarkdownToQuillOptions {
+  debug?: boolean;
+}
+
 export class MarkdownToQuill {
-  options: { debug?: boolean };
+  options: MarkdownToQuillOptions;
 
   blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list'];
 
-  constructor(private md: string, options?: any) {
+  constructor(options?: Partial<MarkdownToQuillOptions>) {
     this.options = { ...options };
   }
 
-  convert(): Op[] {
+  convert(text: string): Op[] {
     const processor = unified().use(markdown);
-    const tree: Parent = processor.parse(this.md) as Parent;
+    const tree: Parent = processor.parse(text) as Parent;
 
     if (this.options.debug) {
       console.log('tree', tree);
