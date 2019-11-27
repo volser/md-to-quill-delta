@@ -6,8 +6,9 @@
     "attributes": {
       "code-block": true
     },
-    "insert": "\n"
+    "insert": "\n\n"
   },
+  
   {
     "insert": "line 2"
   },

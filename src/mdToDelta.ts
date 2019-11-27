@@ -57,7 +57,9 @@ export class MarkdownToQuill {
           case 'code':
             const lines = String(child.value).split('\n');
             lines.forEach(line => {
-              delta.push({ insert: line });
+              if (line) {
+                delta.push({ insert: line });
+              }
               delta.push({ insert: '\n', attributes: { 'code-block': true } });
             });
 
