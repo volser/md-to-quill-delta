@@ -58,8 +58,13 @@ describe('Remark-Delta Transformer', () => {
   for (const t of tests) {
     test(`Markdown to Delta: ${t.name}`, () => {
       const debug = t.name === '';
+      let id = 0;
       const converter = new MarkdownToQuill({
-        debug
+        debug,
+        tableIdGenerator: () => {
+          id++;
+          return String(id);
+        }
       });
       const ops = converter.convert(t.markdown);
       const delta = new Delta();

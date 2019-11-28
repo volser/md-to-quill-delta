@@ -6,15 +6,29 @@ import { Parent } from 'unist';
 
 export interface MarkdownToQuillOptions {
   debug?: boolean;
+  tableIdGenerator: () => string;
 }
+
+const defaultOptions: MarkdownToQuillOptions = {
+  debug: false,
+  tableIdGenerator: () => {
+    const id = Math.random()
+      .toString(36)
+      .slice(2, 6);
+    return `row-${id}`;
+  }
+};
 
 export class MarkdownToQuill {
   options: MarkdownToQuillOptions;
 
-  blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list'];
+  blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
-    this.options = { ...options };
+    this.options = {
+      ...defaultOptions,
+      ...options
+    };
   }
 
   convert(text: string): Op[] {
@@ -32,16 +46,17 @@ export class MarkdownToQuill {
     parent: Node | Parent,
     node: Node | Parent,
     op: Op = {},
-    indent = 0
+    indent = 0,
+    extra?: any
   ): Delta {
     const { children } = node as any;
     let delta = new Delta();
     if (children) {
       if (this.options.debug) {
-        console.log('children:', children);
+        console.log('children:', children, extra);
       }
       let prevType;
-      children.forEach(child => {
+      children.forEach((child, idx) => {
         if (this.isBlock(child.type) && this.isBlock(prevType)) {
           delta.insert('\n');
         }
@@ -69,6 +84,32 @@ export class MarkdownToQuill {
             break;
           case 'listItem':
             delta = delta.concat(this.convertListItem(node, child, indent));
+            break;
+          case 'table':
+            delta = delta.concat(
+              this.convertChildren(node, child, op, indent, {
+                align: (child as any).align
+              })
+            );
+            break;
+          case 'tableRow':
+            delta = delta.concat(
+              this.convertChildren(node, child, op, indent, {
+                ...extra,
+                id: this.generateId()
+              })
+            );
+            break;
+          case 'tableCell':
+            const align = extra && extra.align;
+            const alignCell =
+              align && Array.isArray(align) && align.length > idx && align[idx];
+            if (this.options.debug) {
+              console.log('align', alignCell, align, idx);
+            }
+            delta = delta.concat(
+              this.convertTableCell(node, child, extra && extra.id, alignCell)
+            );
             break;
           case 'heading':
             delta = delta.concat(
@@ -109,6 +150,10 @@ export class MarkdownToQuill {
       });
     }
     return delta;
+  }
+
+  private generateId() {
+    return this.options.tableIdGenerator();
   }
 
   private isBlock(type: string) {
@@ -183,6 +228,25 @@ export class MarkdownToQuill {
     }
     if (this.options.debug) {
       console.log('list item', delta.ops);
+    }
+    return delta;
+  }
+
+  private convertTableCell(
+    parent: any,
+    node: any,
+    tableId: string,
+    align: string
+  ): Delta {
+    let delta = new Delta();
+    delta = delta.concat(this.convertChildren(parent, node, {}, 1));
+    const attributes: any = { table: tableId };
+    if (align && align !== 'left') {
+      attributes.align = align;
+    }
+    delta.insert('\n', attributes);
+    if (this.options.debug) {
+      console.log('table cell', delta.ops, align);
     }
     return delta;
   }
