@@ -1,10 +1,23 @@
 [
   {
+    "insert": "\n\n\n",
+    "attributes": {
+      "table-col": {
+        "width": 150
+      }
+    }
+  },
+  {
     "insert": "1.1"
   },
   {
     "attributes": {
-      "table": "1"
+      "table-cell-line": {
+        "cell": "1-1",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -13,7 +26,12 @@
   },
   {
     "attributes": {
-      "table": "1"
+      "table-cell-line": {
+        "cell": "1-2",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -22,7 +40,12 @@
   },
   {
     "attributes": {
-      "table": "1"
+      "table-cell-line": {
+        "cell": "1-3",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -31,7 +54,12 @@
   },
   {
     "attributes": {
-      "table": "2"
+      "table-cell-line": {
+        "cell": "2-1",
+        "row": "2",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -40,7 +68,12 @@
   },
   {
     "attributes": {
-      "table": "2"
+      "table-cell-line": {
+        "cell": "2-2",
+        "row": "2",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -49,7 +82,12 @@
   },
   {
     "attributes": {
-      "table": "2"
+      "table-cell-line": {
+        "cell": "2-3",
+        "row": "2",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -58,7 +96,12 @@
   },
   {
     "attributes": {
-      "table": "3"
+      "table-cell-line": {
+        "cell": "3-1",
+        "row": "3",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -67,7 +110,12 @@
   },
   {
     "attributes": {
-      "table": "3"
+      "table-cell-line": {
+        "cell": "3-2",
+        "row": "3",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   },
@@ -76,8 +124,15 @@
   },
   {
     "attributes": {
-      "table": "3"
+      "table-cell-line": {
+        "cell": "3-3",
+        "row": "3",
+        "colspan": "1",
+        "rowspan": "1"
+      }
     },
     "insert": "\n"
   }
 ]
+
+
