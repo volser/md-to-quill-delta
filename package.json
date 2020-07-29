@@ -1,6 +1,6 @@
 {
-  "name": "md-to-quill-delta",
-  "version": "1.0.9",
+  "name": "md-to-quill-delta-clickup",
+  "version": "1.0.0",
   "description": "Markdown to Quill Delta",
   "main": "dist/umd/index.js",
   "module": "dist/index.js",
