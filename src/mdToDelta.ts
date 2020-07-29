@@ -87,9 +87,9 @@ export class MarkdownToQuill {
             break;
           case 'table':
             // insert table cols
-            const firstRow = child.children[0]
-            const colNumber = firstRow.children.length
-            const colsInsertStr = new Array(colNumber).fill('\n').join('')
+            const firstRow = child.children[0];
+            const colNumber = firstRow.children.length;
+            const colsInsertStr = new Array(colNumber).fill('\n').join('');
             delta = delta.concat(
               new Delta().insert(colsInsertStr, { 'table-col': { width: 150 } })
             );
@@ -109,7 +109,7 @@ export class MarkdownToQuill {
             );
             break;
           case 'tableCell':
-            const cellIndex = (children.indexOf(child) + 1) + ''
+            const cellIndex = (children.indexOf(child) + 1) + '';
             const align = extra && extra.align;
             const alignCell =
               align && Array.isArray(align) && align.length > idx && align[idx];
