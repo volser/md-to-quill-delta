@@ -86,6 +86,14 @@ export class MarkdownToQuill {
             delta = delta.concat(this.convertListItem(node, child, indent));
             break;
           case 'table':
+            // insert table cols
+            const firstRow = child.children[0]
+            const colNumber = firstRow.children.length
+            const colsInsertStr = new Array(colNumber).fill('\n').join('')
+            delta = delta.concat(
+              new Delta().insert(colsInsertStr, { 'table-col': { width: 150 } })
+            );
+
             delta = delta.concat(
               this.convertChildren(node, child, op, indent, {
                 align: (child as any).align
@@ -96,11 +104,12 @@ export class MarkdownToQuill {
             delta = delta.concat(
               this.convertChildren(node, child, op, indent, {
                 ...extra,
-                id: this.generateId()
+                rowId: this.generateId()
               })
             );
             break;
           case 'tableCell':
+            const cellIndex = (children.indexOf(child) + 1) + ''
             const align = extra && extra.align;
             const alignCell =
               align && Array.isArray(align) && align.length > idx && align[idx];
@@ -108,7 +117,7 @@ export class MarkdownToQuill {
               console.log('align', alignCell, align, idx);
             }
             delta = delta.concat(
-              this.convertTableCell(node, child, extra && extra.id, alignCell)
+              this.convertTableCell(node, child, extra && extra.rowId, alignCell, cellIndex)
             );
             break;
           case 'heading':
@@ -235,12 +244,20 @@ export class MarkdownToQuill {
   private convertTableCell(
     parent: any,
     node: any,
-    tableId: string,
-    align: string
+    rowId: string,
+    align: string,
+    cellId: string
   ): Delta {
     let delta = new Delta();
     delta = delta.concat(this.convertChildren(parent, node, {}, 1));
-    const attributes: any = { table: tableId };
+    const attributes: any = {
+      'table-cell-line': {
+        'cell': `${rowId}-${cellId}`,
+        'row': `${rowId}`,
+        'colspan': '1',
+        'rowspan': '1'
+      }
+    };
     if (align && align !== 'left') {
       attributes.align = align;
     }
