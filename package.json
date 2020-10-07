@@ -3,8 +3,8 @@
   "version": "1.0.9",
   "description": "Markdown to Quill Delta",
   "main": "dist/umd/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "module": "dist/mdToDelta.js",
+  "types": "dist/mdToDelta.d.ts",
   "engines": {
     "node": ">=6.0.0"
   },
