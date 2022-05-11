@@ -1,5 +1,5 @@
 {
-  "name": "@clickup/md-to-quill-delta",
+  "name": "@time-loop/md-to-quill-delta",
   "version": "1.0.0",
   "description": "Markdown to Quill Delta",
   "main": "dist/umd/index.js",
@@ -19,7 +19,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/volser/md-to-quill-delta.git"
+    "url": "git+https://github.com/time-loop/md-to-quill-delta.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   },
   "keywords": [
     "quill",
