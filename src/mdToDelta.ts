@@ -248,20 +248,81 @@ export class MarkdownToQuill {
     align: string,
     cellId: string
   ): Delta {
-    let delta = new Delta();
-    delta = delta.concat(this.convertChildren(parent, node, {}, 1));
-    const attributes: any = {
-      'table-cell-line': {
-        'cell': `${rowId}-${cellId}`,
-        'row': `${rowId}`,
-        'colspan': '1',
-        'rowspan': '1'
-      }
-    };
+    const SYMBOLS_TO_SPLIT = [
+      '<br>',
+      '<br/>'
+    ];
+    const attributes: any = {};
     if (align && align !== 'left') {
       attributes.align = align;
     }
-    delta.insert('\n', attributes);
+    const tableFormats = {
+      'cell': `${rowId}-${cellId}`,
+      'row': `${rowId}`,
+      'colspan': '1',
+      'rowspan': '1'
+    };
+
+    let delta = new Delta();
+    let hasMultiLineInThisCell = false;
+    delta = delta.concat(this.convertChildren(parent, node, {}, 1));
+    delta = delta.ops.reduce((newDelta: Delta, op: Op) => {
+      if (
+        typeof op.insert === 'string' &&
+        SYMBOLS_TO_SPLIT.some((symbol) => (op.insert as string).includes(symbol))
+      ) {
+        hasMultiLineInThisCell = true;
+        const lines: Array<string> = SYMBOLS_TO_SPLIT.reduce((strs, symbol) => {
+          return strs.reduce((lines, str) => lines.concat(str.split(symbol)), []);
+        }, [op.insert]);
+        lines
+          .map((str) => {
+            return this.convert(str);
+          })
+          .forEach(ops => {
+            ops.forEach((op) => {
+              if ((op.insert as string).endsWith('\n')) {
+                if (
+                  op.attributes &&
+                  op.attributes.list
+                ) {
+                  newDelta.insert(
+                    op.insert,
+                    {
+                      ...attributes,
+                      list: {
+                        ...tableFormats,
+                        list: op.attributes.list,
+                      }
+                    }
+                  );
+                } else {
+                  newDelta.insert(
+                    op.insert,
+                    {
+                      ...attributes,
+                      'table-cell-line': tableFormats,
+                    }
+                  );
+                }
+              } else {
+                newDelta.push(op);
+              }
+            });
+          });
+      } else {
+        newDelta.push(op);
+      }
+      return newDelta;
+    }, new Delta());
+
+    if (!hasMultiLineInThisCell) {
+      delta.insert('\n', {
+        ...attributes,
+        'table-cell-line': tableFormats
+      });
+    }
+
     if (this.options.debug) {
       console.log('table cell', delta.ops, align);
     }
