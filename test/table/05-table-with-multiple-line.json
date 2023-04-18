@@ -1,0 +1,77 @@
+[
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "table-col": {
+        "width": 150
+      }
+    }
+  },
+  {
+    "insert": "1.1.1 \n 1.1.2\n",
+    "attributes": {
+      "table-cell-line": {
+        "cell": "1-1",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1"
+      }
+    }
+  },
+  {
+    "insert": "1.2.1 \n",
+    "attributes": {
+      "table-cell-line": {
+        "cell": "1-2",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1"
+      }
+    }
+  },
+  {
+    "insert": "1.2.2"
+  },
+  {
+    "attributes": {
+      "list": {
+        "cell": "1-2",
+        "row": "1",
+        "colspan": "1",
+        "rowspan": "1",
+        "list": "bullet"
+      }
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "2.1"
+  },
+  {
+    "attributes": {
+      "table-cell-line": {
+        "cell": "2-1",
+        "row": "2",
+        "colspan": "1",
+        "rowspan": "1"
+      }
+    },
+    "insert": "\n"
+  },
+  {
+    "insert": "2.2"
+  },
+  {
+    "attributes": {
+      "table-cell-line": {
+        "cell": "2-2",
+        "row": "2",
+        "colspan": "1",
+        "rowspan": "1"
+      }
+    },
+    "insert": "\n"
+  }
+]
+
+
