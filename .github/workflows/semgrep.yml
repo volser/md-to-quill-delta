@@ -1,0 +1,32 @@
+# Name of this GitHub Actions workflow.
+name: Semgrep
+
+on:
+    pull_request:
+        branches: ['master', 'main']
+
+    # Schedule the CI job (this method uses cron syntax):
+    schedule:
+        - cron: '0 0 * * MON-FRI'
+
+jobs:
+    semgrep:
+        # User definable name of this GitHub Actions job.
+        name: Scan
+        # If you are self-hosting, change the following `runs-on` value:
+        runs-on: ubuntu-latest
+
+        container:
+            # A Docker image with Semgrep installed. Do not change this.
+            image: returntocorp/semgrep
+
+        steps:
+            # Fetch project source with GitHub Actions Checkout.
+            - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+            # Run the "semgrep ci" command on the command line of the docker image.
+            - run: semgrep ci
+              env:
+                  # Connect to Semgrep Cloud Platform through your SEMGREP_APP_TOKEN.
+                  # Generate a token from Semgrep Cloud Platform > Settings
+                  # and add it to your GitHub secrets.
+                  SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
