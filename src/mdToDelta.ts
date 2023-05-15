@@ -139,6 +139,9 @@ export class MarkdownToQuill {
             delta.insert({ divider: true });
             delta.insert('\n');
             break;
+          case 'break':
+            delta.insert('\n');
+            break;
           case 'image':
             delta = delta.concat(
               this.embedFormat(
