@@ -1,6 +1,6 @@
 {
   "name": "@time-loop/md-to-quill-delta",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Markdown to Quill Delta",
   "main": "dist/umd/index.js",
   "module": "dist/mdToDelta.js",
@@ -42,6 +42,7 @@
     "coveralls": "^3.0.7",
     "husky": "^3.0.9",
     "jest": "^24.9.0",
+    "jest-jasmine2": "^29.7.0",
     "prettier": "1.18.2",
     "pretty-quick": "^2.0.0",
     "quill": "^2.0.0-dev.3",

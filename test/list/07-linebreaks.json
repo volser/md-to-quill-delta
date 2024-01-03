@@ -1,0 +1,71 @@
+[
+  {
+    "attributes": {
+      "link": "https://staging.clickup.com/t/8x8uvjc2e"
+    },
+    "insert": "FE | Fix empty spaces"
+  },
+  {
+    "insert": "\nLine1"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  },
+  {
+    "attributes": {
+      "link": "https://staging.clickup.com/t/8x8uu5jj5"
+    },
+    "insert": "Update the fonts"
+  },
+  {
+    "insert": "\nLine2"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  },
+  {
+    "insert": "Line3"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  },
+  {
+    "attributes": {
+      "link": "https://staging.clickup.com/t/8x8uva93c"
+    },
+    "insert": "Move blocks (single and multi select) up and down via CMD/CTRL + Shift + Up/Down\n"
+  },
+  {
+    "insert": "\nLine4"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  },
+  {
+    "attributes": {
+      "link": "https://staging.clickup.com/t/8x8uvmaeh"
+    },
+    "insert": "Add snap grid to the columns resizing"
+  },
+  {
+    "insert": "\nLine5"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  }
+]
