@@ -1,6 +1,6 @@
 [
   { "insert": "This is a paragraph" },
-  { "insert": "\n\n" },
+  { "insert": "\n" },
   { "insert": "item one" },
   {
     "attributes": {
@@ -17,6 +17,6 @@
     },
     "insert": "\n"
   },
-  { "insert": "\nThis is a paragraph too." },
+  { "insert": "This is a paragraph too." },
   { "insert": "\n" }
 ]

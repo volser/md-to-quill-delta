@@ -9,12 +9,8 @@
     }
   },
   {
-    "insert": "\n"
-  },
-  {
     "insert": "what do we do with a drunken sailor\nwhat do we do with a drunken sailor"
   },
-  { "insert": "\n" },
   { "insert": "\n" },
   {
     "insert": "Ooops"
@@ -26,12 +22,8 @@
     }
   },
   {
-    "insert": "\n"
-  },
-  {
     "insert": "ponder this:"
   },
-  { "insert": "\n" },
   { "insert": "\n" },
   {
     "insert": "function d() {return \"d\"}"

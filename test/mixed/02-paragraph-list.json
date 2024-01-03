@@ -1,6 +1,6 @@
 [
   { "insert": "This is a list:" },
-  { "insert": "\n\n" },
+  { "insert": "\n" },
   { "insert": "item one" },
   {
     "attributes": {

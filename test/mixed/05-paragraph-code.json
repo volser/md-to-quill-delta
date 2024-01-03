@@ -3,7 +3,6 @@
     "insert": "Say we have the following function:"
   },
   { "insert": "\n" },
-  { "insert": "\n" },
   { "insert": "function f() { }" },
   {
     "attributes": {
@@ -11,11 +10,9 @@
     },
     "insert": "\n"
   },
-  { "insert": "\n" },
   {
     "insert": "If we ever decided to call it something else, we would go:"
   },
-  { "insert": "\n" },
   { "insert": "\n" },
   { "insert": "function g() { }" },
 

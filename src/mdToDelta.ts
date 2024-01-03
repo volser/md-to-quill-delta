@@ -22,7 +22,7 @@ const defaultOptions: MarkdownToQuillOptions = {
 export class MarkdownToQuill {
   options: MarkdownToQuillOptions;
 
-  blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
+  blocks = ['code', 'heading', 'blockquote', 'list', 'table'];
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
     this.options = {
@@ -109,7 +109,7 @@ export class MarkdownToQuill {
             );
             break;
           case 'tableCell':
-            const cellIndex = (children.indexOf(child) + 1) + '';
+            const cellIndex = children.indexOf(child) + 1 + '';
             const align = extra && extra.align;
             const alignCell =
               align && Array.isArray(align) && align.length > idx && align[idx];
@@ -117,7 +117,13 @@ export class MarkdownToQuill {
               console.log('align', alignCell, align, idx);
             }
             delta = delta.concat(
-              this.convertTableCell(node, child, extra && extra.rowId, alignCell, cellIndex)
+              this.convertTableCell(
+                node,
+                child,
+                extra && extra.rowId,
+                alignCell,
+                cellIndex
+              )
             );
             break;
           case 'heading':
@@ -251,19 +257,16 @@ export class MarkdownToQuill {
     align: string,
     cellId: string
   ): Delta {
-    const SYMBOLS_TO_SPLIT = [
-      '<br>',
-      '<br/>'
-    ];
+    const SYMBOLS_TO_SPLIT = ['<br>', '<br/>'];
     const attributes: any = {};
     if (align && align !== 'left') {
       attributes.align = align;
     }
     const tableFormats = {
-      'cell': `${rowId}-${cellId}`,
-      'row': `${rowId}`,
-      'colspan': '1',
-      'rowspan': '1'
+      cell: `${rowId}-${cellId}`,
+      row: `${rowId}`,
+      colspan: '1',
+      rowspan: '1'
     };
 
     let delta = new Delta();
@@ -272,41 +275,38 @@ export class MarkdownToQuill {
     delta = delta.ops.reduce((newDelta: Delta, op: Op) => {
       if (
         typeof op.insert === 'string' &&
-        SYMBOLS_TO_SPLIT.some((symbol) => (op.insert as string).includes(symbol))
+        SYMBOLS_TO_SPLIT.some(symbol => (op.insert as string).includes(symbol))
       ) {
         hasMultiLineInThisCell = true;
-        const lines: Array<string> = SYMBOLS_TO_SPLIT.reduce((strs, symbol) => {
-          return strs.reduce((lines, str) => lines.concat(str.split(symbol)), []);
-        }, [op.insert]);
+        const lines: Array<string> = SYMBOLS_TO_SPLIT.reduce(
+          (strs, symbol) => {
+            return strs.reduce(
+              (lines, str) => lines.concat(str.split(symbol)),
+              []
+            );
+          },
+          [op.insert]
+        );
         lines
-          .map((str) => {
+          .map(str => {
             return this.convert(str);
           })
           .forEach(ops => {
-            ops.forEach((op) => {
+            ops.forEach(op => {
               if ((op.insert as string).endsWith('\n')) {
-                if (
-                  op.attributes &&
-                  op.attributes.list
-                ) {
-                  newDelta.insert(
-                    op.insert,
-                    {
-                      ...attributes,
-                      list: {
-                        ...tableFormats,
-                        list: op.attributes.list,
-                      }
+                if (op.attributes && op.attributes.list) {
+                  newDelta.insert(op.insert, {
+                    ...attributes,
+                    list: {
+                      ...tableFormats,
+                      list: op.attributes.list
                     }
-                  );
+                  });
                 } else {
-                  newDelta.insert(
-                    op.insert,
-                    {
-                      ...attributes,
-                      'table-cell-line': tableFormats,
-                    }
-                  );
+                  newDelta.insert(op.insert, {
+                    ...attributes,
+                    'table-cell-line': tableFormats
+                  });
                 }
               } else {
                 newDelta.push(op);
