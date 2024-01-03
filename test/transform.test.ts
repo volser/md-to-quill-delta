@@ -7,6 +7,7 @@ interface Test {
   name: string;
   ops: Op[];
   markdown: string;
+  options?: Record<string, any>;
 }
 
 describe('Remark-Delta Transformer', () => {
@@ -30,6 +31,8 @@ describe('Remark-Delta Transformer', () => {
       let matchingFileName: string;
       if (file.endsWith('.md')) {
         matchingFileName = `${baseFileName}.json`;
+      } else if (file.endsWith('.options.json')) {
+        continue;
       } else if (file.endsWith('.json')) {
         matchingFileName = `${baseFileName}.md`;
       } else {
@@ -46,11 +49,14 @@ describe('Remark-Delta Transformer', () => {
 
       const jsonFilePath = path.join(directory, `${baseFileName}.json`);
       const markdownFilePath = path.join(directory, `${baseFileName}.md`);
+      const optionsPath = path.join(directory, `${baseFileName}.options.json`);
+      const options = fs.existsSync(optionsPath) ? JSON.parse(fs.readFileSync(optionsPath, 'utf-8')) : {};
 
       tests.push({
         name: `${path.basename(directory)}/${baseFileName}`,
         ops: JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8')),
-        markdown: fs.readFileSync(markdownFilePath, 'utf-8')
+        markdown: fs.readFileSync(markdownFilePath, 'utf-8'),
+        options,
       });
     }
   }
@@ -64,7 +70,8 @@ describe('Remark-Delta Transformer', () => {
         tableIdGenerator: () => {
           id++;
           return String(id);
-        }
+        },
+        ...t.options,
       });
       const ops = converter.convert(t.markdown);
       const delta = new Delta();
