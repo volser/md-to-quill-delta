@@ -6,13 +6,16 @@
     "insert": "FE | Fix empty spaces"
   },
   {
-    "insert": "\nLine1"
+    "insert": "\n\nLine1"
   },
   {
     "insert": "\n",
     "attributes": {
       "list": "bullet"
     }
+  },
+  {
+    "insert": "\n"
   },
   {
     "attributes": {
@@ -39,6 +42,9 @@
     }
   },
   {
+    "insert": "\n"
+  },
+  {
     "attributes": {
       "link": "https://staging.clickup.com/t/8x8uva93c"
     },
@@ -52,6 +58,9 @@
     "attributes": {
       "list": "bullet"
     }
+  },
+  {
+    "insert": "\n"
   },
   {
     "attributes": {

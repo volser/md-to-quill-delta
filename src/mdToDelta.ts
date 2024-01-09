@@ -7,12 +7,21 @@ import { Parent } from 'unist';
 export interface MarkdownToQuillOptions {
   debug?: boolean;
   lineBreakBlocks?: string[];
+  preciseLineBreak?: boolean;
   tableIdGenerator: () => string;
 }
 
 const defaultOptions: MarkdownToQuillOptions = {
-  lineBreakBlocks: ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'],
+  lineBreakBlocks: [
+    'paragraph',
+    'code',
+    'heading',
+    'blockquote',
+    'list',
+    'table'
+  ],
   debug: false,
+  preciseLineBreak: false,
   tableIdGenerator: () => {
     const id = Math.random()
       .toString(36)
@@ -25,6 +34,8 @@ export class MarkdownToQuill {
   options: MarkdownToQuillOptions;
 
   blocks: string[];
+
+  prevEndLine: number = 1;
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
     this.options = {
@@ -61,7 +72,14 @@ export class MarkdownToQuill {
       let prevType;
       children.forEach((child, idx) => {
         if (this.isBlock(child.type) && this.isBlock(prevType)) {
-          delta.insert('\n');
+          if (this.options.preciseLineBreak) {
+            const diff = child.position.start.line - this.prevEndLine;
+            for (let i = 1; i < diff; i++) {
+              delta.insert('\n');
+            }
+          } else {
+            delta.insert('\n');
+          }
         }
         switch (child.type) {
           case 'paragraph':
@@ -168,6 +186,7 @@ export class MarkdownToQuill {
         }
 
         prevType = child.type;
+        this.prevEndLine = child.position.end.line;
       });
     }
     return delta;
