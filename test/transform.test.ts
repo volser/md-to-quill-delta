@@ -19,7 +19,7 @@ describe('Remark-Delta Transformer', () => {
     .map((fileName: string) => path.join(folderPath, fileName))
     .filter((fileName: string) => isDirectory(fileName));
 
-  const tests: Test[] = [];
+  let tests: Test[] = [];
 
   for (const directory of directories) {
     const files = fs.readdirSync(directory);

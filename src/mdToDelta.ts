@@ -188,6 +188,18 @@ export class MarkdownToQuill {
         prevType = child.type;
         this.prevEndLine = child.position.end.line;
       });
+    } else if ((node as any).type === 'code') {
+      const value = (node as any).value;
+      delta.push({
+        insert: value ?? '',
+      });
+      delta.push({
+        insert: '\n',
+        attributes: {
+          'code-block': (node as any).lang ?? 'plain',
+          'code-block-line-numbers': 'false',
+        }
+      });
     }
     return delta;
   }
@@ -244,6 +256,7 @@ export class MarkdownToQuill {
   }
 
   private convertListItem(parent: any, node: any, indent = 0): Delta {
+    debugger;
     let delta = new Delta();
     for (const child of node.children) {
       delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
