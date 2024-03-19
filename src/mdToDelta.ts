@@ -256,7 +256,6 @@ export class MarkdownToQuill {
   }
 
   private convertListItem(parent: any, node: any, indent = 0): Delta {
-    debugger;
     let delta = new Delta();
     for (const child of node.children) {
       delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
