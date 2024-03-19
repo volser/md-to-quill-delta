@@ -1,0 +1,183 @@
+[
+  {
+    "insert": "To perform database migrations for BDR (Bi-Directional Replication), you can follow these general steps as outlined in the "
+  },
+  {
+    "attributes": {
+      "link": "https://staging.clickup.com/t/333/8x8uvnhc9"
+    },
+    "insert": "DB DDL Migration Process"
+  },
+  {
+    "insert": ":\n\nRun a command to generate a new SQL file under "
+  },
+  {
+    "insert": "scripts/migrations/bdr",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": ", for example:"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "pnpm run create-db-migration --db bdr --name create_imports_docs_table"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": "plain",
+      "code-block-line-numbers": "false"
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Populate the SQL file with the "
+  },
+  {
+    "insert": "CREATE TABLE",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": " statement."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Run a command to generate a new SQL file to add an index:"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "pnpm run create-db-migration --db bdr --name create_imports_docs_workspace_id_idx"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": "plain",
+      "code-block-line-numbers": "false"
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Populate the SQL file with the "
+  },
+  {
+    "insert": "CREATE INDEX",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": " statement."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Repeat the steps for any other SQL statements you would like to have, such as creating other tables and indices."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Run a command to update "
+  },
+  {
+    "insert": "src/scripts/db_migrations.sql",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": ":"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "pnpm run regen-db-migrations"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": "plain",
+      "code-block-line-numbers": "false"
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Run a command to test your DDL changes:"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "pnpm run test:jest -- test/jest/migrations.test.ts"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": "plain",
+      "code-block-line-numbers": "false"
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Add your new table schema metadata into the WMS service files as needed for migration to new shards."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  }
+]

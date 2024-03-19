@@ -188,6 +188,18 @@ export class MarkdownToQuill {
         prevType = child.type;
         this.prevEndLine = child.position.end.line;
       });
+    } else if ((node as any).type === 'code') {
+      const value = (node as any).value;
+      delta.push({
+        insert: value ?? '',
+      });
+      delta.push({
+        insert: '\n',
+        attributes: {
+          'code-block': (node as any).lang ?? 'plain',
+          'code-block-line-numbers': 'false',
+        }
+      });
     }
     return delta;
   }
