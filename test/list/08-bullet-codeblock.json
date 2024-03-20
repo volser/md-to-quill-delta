@@ -37,12 +37,6 @@
     }
   },
   {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
-    }
-  },
-  {
     "insert": "Populate the SQL file with the "
   },
   {
@@ -77,12 +71,6 @@
     "attributes": {
       "code-block": "plain",
       "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
     }
   },
   {
@@ -141,12 +129,6 @@
     }
   },
   {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
-    }
-  },
-  {
     "insert": "Run a command to test your DDL changes:"
   },
   {
@@ -163,12 +145,6 @@
     "attributes": {
       "code-block": "plain",
       "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
     }
   },
   {

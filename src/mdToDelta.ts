@@ -188,18 +188,6 @@ export class MarkdownToQuill {
         prevType = child.type;
         this.prevEndLine = child.position.end.line;
       });
-    } else if ((node as any).type === 'code') {
-      const value = (node as any).value;
-      delta.push({
-        insert: value ?? '',
-      });
-      delta.push({
-        insert: '\n',
-        attributes: {
-          'code-block': (node as any).lang ?? 'plain',
-          'code-block-line-numbers': 'false',
-        }
-      });
     }
     return delta;
   }
@@ -259,7 +247,19 @@ export class MarkdownToQuill {
     let delta = new Delta();
     for (const child of node.children) {
       delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
-      if (child.type !== 'list') {
+      if (child.type === 'code') {
+        const value = child.value;
+        delta.push({
+          insert: value ?? '',
+        });
+        delta.push({
+          insert: '\n',
+          attributes: {
+            'code-block': (node as any).lang ?? 'plain',
+            'code-block-line-numbers': 'false',
+          }
+        });
+      } else if (child.type !== 'list') {
         let listAttribute = '';
         if (parent.ordered) {
           listAttribute = 'ordered';
