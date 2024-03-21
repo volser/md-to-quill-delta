@@ -32,14 +32,7 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain",
-      "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
+      "code-block": "plain"
     }
   },
   {
@@ -75,14 +68,7 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain",
-      "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
+      "code-block": "plain"
     }
   },
   {
@@ -136,14 +122,7 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain",
-      "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
+      "code-block": "plain"
     }
   },
   {
@@ -161,14 +140,7 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain",
-      "code-block-line-numbers": "false"
-    }
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "list": "ordered"
+      "code-block": "plain"
     }
   },
   {

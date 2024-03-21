@@ -56,6 +56,23 @@ export class MarkdownToQuill {
     return delta.ops;
   }
 
+  private convertCodeBlock(child: any, defaultLang: boolean | string = true): Delta {
+    const delta = new Delta;
+    const lines = String(child.value).split('\n');
+    lines.forEach(line => {
+      if (line) {
+        delta.push({ insert: line });
+      }
+      delta.push({
+        insert: '\n',
+        attributes: {
+          'code-block': child.lang ?? defaultLang,
+        }});
+    });
+
+    return delta;
+  }
+
   private convertChildren(
     parent: Node | Parent,
     node: Node | Parent,
@@ -91,14 +108,7 @@ export class MarkdownToQuill {
             }
             break;
           case 'code':
-            const lines = String(child.value).split('\n');
-            lines.forEach(line => {
-              if (line) {
-                delta.push({ insert: line });
-              }
-              delta.push({ insert: '\n', attributes: { 'code-block': true } });
-            });
-
+            delta = delta.concat(this.convertCodeBlock(child));
             break;
           case 'list':
             delta = delta.concat(this.convertChildren(node, child, op, indent));
@@ -188,18 +198,6 @@ export class MarkdownToQuill {
         prevType = child.type;
         this.prevEndLine = child.position.end.line;
       });
-    } else if ((node as any).type === 'code') {
-      const value = (node as any).value;
-      delta.push({
-        insert: value ?? '',
-      });
-      delta.push({
-        insert: '\n',
-        attributes: {
-          'code-block': (node as any).lang ?? 'plain',
-          'code-block-line-numbers': 'false',
-        }
-      });
     }
     return delta;
   }
@@ -258,25 +256,30 @@ export class MarkdownToQuill {
   private convertListItem(parent: any, node: any, indent = 0): Delta {
     let delta = new Delta();
     for (const child of node.children) {
-      delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
-      if (child.type !== 'list') {
-        let listAttribute = '';
-        if (parent.ordered) {
-          listAttribute = 'ordered';
-        } else if (node.checked) {
-          listAttribute = 'checked';
-        } else if (node.checked === false) {
-          listAttribute = 'unchecked';
-        } else {
-          listAttribute = 'bullet';
-        }
-        const attributes = { list: listAttribute };
-        if (indent) {
-          attributes['indent'] = indent;
-        }
-
-        delta.push({ insert: '\n', attributes });
+      if (child.type === 'code') {
+        delta = delta.concat(this.convertCodeBlock(child, 'plain'));
+        continue;
       }
+      delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
+      if (child.type === 'list') {
+        continue;
+      }
+      let listAttribute = '';
+      if (parent.ordered) {
+        listAttribute = 'ordered';
+      } else if (node.checked) {
+        listAttribute = 'checked';
+      } else if (node.checked === false) {
+        listAttribute = 'unchecked';
+      } else {
+        listAttribute = 'bullet';
+      }
+      const attributes = { list: listAttribute };
+      if (indent) {
+        attributes['indent'] = indent;
+      }
+
+      delta.push({ insert: '\n', attributes });
     }
     if (this.options.debug) {
       console.log('list item', delta.ops);
