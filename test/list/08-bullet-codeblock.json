@@ -32,7 +32,10 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain"
+      "code-block": {
+        "code-block": "plain",
+        "in-list": "none"
+      }
     }
   },
   {
@@ -68,7 +71,10 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain"
+      "code-block": {
+        "code-block": "plain",
+        "in-list": "none"
+      }
     }
   },
   {
@@ -122,7 +128,10 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain"
+      "code-block": {
+        "code-block": "plain",
+        "in-list": "none"
+      }
     }
   },
   {
@@ -140,7 +149,10 @@
   {
     "insert": "\n",
     "attributes": {
-      "code-block": "plain"
+      "code-block": {
+        "code-block": "plain",
+        "in-list": "none"
+      }
     }
   },
   {

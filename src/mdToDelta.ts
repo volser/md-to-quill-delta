@@ -56,18 +56,26 @@ export class MarkdownToQuill {
     return delta.ops;
   }
 
-  private convertCodeBlock(child: any, defaultLang: boolean | string = true): Delta {
+  private convertCodeBlock(child: any, defaultLang: boolean | string = true, inList = false): Delta {
     const delta = new Delta;
     const lines = String(child.value).split('\n');
     lines.forEach(line => {
       if (line) {
         delta.push({ insert: line });
       }
+      const attributes = {
+        'code-block': child.lang ?? defaultLang,
+      };
+      if (inList) {
+        attributes['code-block'] = {
+          ...attributes,
+          ['in-list']: 'none',
+        };
+      }
       delta.push({
         insert: '\n',
-        attributes: {
-          'code-block': child.lang ?? defaultLang,
-        }});
+        attributes,
+      });
     });
 
     return delta;
@@ -257,7 +265,7 @@ export class MarkdownToQuill {
     let delta = new Delta();
     for (const child of node.children) {
       if (child.type === 'code') {
-        delta = delta.concat(this.convertCodeBlock(child, 'plain'));
+        delta = delta.concat(this.convertCodeBlock(child, 'plain', true));
         continue;
       }
       delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
