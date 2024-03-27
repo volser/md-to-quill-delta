@@ -1,6 +1,6 @@
 {
   "name": "@time-loop/md-to-quill-delta",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Markdown to Quill Delta",
   "main": "dist/umd/index.js",
   "module": "dist/mdToDelta.js",
