@@ -1,0 +1,47 @@
+[
+  {
+    "insert": "Source"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "\n    Check 1"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "unchecked"
+    }
+  },
+  {
+    "insert": "    Check 2"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "unchecked"
+    }
+  },
+  {
+    "insert": "    Check 3"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "checked"
+    }
+  },
+  {
+    "insert": "    Check 4"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "unchecked"
+    }
+  }
+]

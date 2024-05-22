@@ -1,7 +1,12 @@
 import Op from 'quill-delta/dist/Op';
 import Delta from 'quill-delta';
-import unified from 'unified';
-import markdown from 'remark-parse';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { gfmStrikethrough } from 'micromark-extension-gfm-strikethrough';
+import { gfmTable } from 'micromark-extension-gfm-table';
+import { gfmTaskListItem } from 'micromark-extension-gfm-task-list-item';
+import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
+import { gfmStrikethroughFromMarkdown } from 'mdast-util-gfm-strikethrough';
+import { gfmTaskListItemFromMarkdown } from 'mdast-util-gfm-task-list-item';
 import { Parent } from 'unist';
 
 export interface MarkdownToQuillOptions {
@@ -46,8 +51,10 @@ export class MarkdownToQuill {
   }
 
   convert(text: string): Op[] {
-    const processor = unified().use(markdown);
-    const tree: Parent = processor.parse(text) as Parent;
+    const tree: Parent = fromMarkdown(text, {
+      extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem()],
+      mdastExtensions: [gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown()],
+    }) as Parent;
 
     if (this.options.debug) {
       console.log('tree', tree);

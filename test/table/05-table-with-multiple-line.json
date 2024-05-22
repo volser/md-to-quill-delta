@@ -8,7 +8,7 @@
     }
   },
   {
-    "insert": "1.1.1 \n 1.1.2\n",
+    "insert": "1.1.1\n1.1.2\n",
     "attributes": {
       "table-cell-line": {
         "cell": "1-1",
@@ -19,7 +19,7 @@
     }
   },
   {
-    "insert": "1.2.1 \n",
+    "insert": "1.2.1\n",
     "attributes": {
       "table-cell-line": {
         "cell": "1-2",
