@@ -1,0 +1,103 @@
+[
+  {
+    "insert": {
+      "table-embed": {
+        "rows": [
+          { "insert": { "id": "row-1" } },
+          { "insert": { "id": "row-2" } },
+          { "insert": { "id": "row-3" } },
+          { "insert": { "id": "row-4" } },
+          { "insert": { "id": "row-5" } }
+        ],
+        "columns": [
+          { "insert": { "id": "column-1" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-2" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-3" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-4" }, "attributes": { "width": "238" } }
+        ],
+        "cells": {
+          "1:1": {
+            "content": [{ "insert": "Col A" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:2": {
+            "content": [{ "insert": "Col B" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:3": {
+            "content": [{ "insert": "Col C" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:4": {
+            "content": [{ "insert": "Col D" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:1": {
+            "content": [{ "insert": "A1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:2": {
+            "content": [{ "insert": "B1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:3": {
+            "content": [{ "insert": "C1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:4": {
+            "content": [{ "insert": "D1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:1": {
+            "content": [{ "insert": "A2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:2": {
+            "content": [{ "insert": "B2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:3": {
+            "content": [{ "insert": "C2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:4": {
+            "content": [{ "insert": "D2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "4:1": {
+            "content": [{ "insert": "A3" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "4:2": {
+            "content": [{ "insert": "B3" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "4:3": {
+            "content": [{ "insert": "C3" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "4:4": {
+            "content": [{ "insert": "D3" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "5:1": {
+            "content": [{ "insert": "A4" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "5:2": {
+            "content": [{ "insert": "B4" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "5:3": {
+            "content": [{ "insert": "C4" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "5:4": {
+            "content": [{ "insert": "D4" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          }
+        }
+      }
+    }
+  }
+]

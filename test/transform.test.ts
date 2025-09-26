@@ -66,11 +66,21 @@ describe('Remark-Delta Transformer', () => {
     test(`Markdown to Delta: ${t.name}`, () => {
       const debug = t.name === '';
       let id = 0;
+      let rowId = 0;
+      let colId = 0;
       const converter = new MarkdownToQuill({
         debug,
         tableIdGenerator: () => {
           id++;
           return String(id);
+        },
+        generateRowId: () => {
+          rowId++;
+          return `row-${rowId}`;
+        },
+        generateColumnId: () => {
+          colId++;
+          return `column-${colId}`;
         },
         ...t.options,
         customHtmlConverter: defaultCustomHtmlConverter,

@@ -21,6 +21,10 @@ export interface MarkdownToQuillOptions {
     op: Op,
     indent,
   ) => Delta | undefined;
+  enableTableV2?: boolean;
+  generateRowId?: () => string;
+  generateColumnId?: () => string;
+  defaultColumnWidth?: string;
 }
 
 const defaultOptions: MarkdownToQuillOptions = {
@@ -41,6 +45,20 @@ const defaultOptions: MarkdownToQuillOptions = {
     return `row-${id}`;
   },
   enableCustomHtmlConverter: false,
+  enableTableV2: false,
+  generateRowId: () => {
+    const id = Math.random()
+      .toString(36)
+      .slice(2, 9);
+    return `row-${id}`;
+  },
+  generateColumnId: () => {
+    const id = Math.random()
+      .toString(36)
+      .slice(2, 9);
+    return `column-${id}`;
+  },
+  defaultColumnWidth: '238',
 };
 
 export class MarkdownToQuill {
@@ -150,45 +168,55 @@ export class MarkdownToQuill {
             delta = delta.concat(this.convertListItem(node, child, indent));
             break;
           case 'table':
-            // insert table cols
-            const firstRow = child.children[0];
-            const colNumber = firstRow.children.length;
-            const colsInsertStr = new Array(colNumber).fill('\n').join('');
-            delta = delta.concat(
-              new Delta().insert(colsInsertStr, { 'table-col': { width: '150' } })
-            );
+            if (this.options.enableTableV2) {
+              // Convert to table-v2 format
+              delta = delta.concat(this.convertTableV2(child));
+            } else {
+              // Convert to table-v1 format (existing behavior)
+              // insert table cols
+              const firstRow = child.children[0];
+              const colNumber = firstRow.children.length;
+              const colsInsertStr = new Array(colNumber).fill('\n').join('');
+              delta = delta.concat(
+                new Delta().insert(colsInsertStr, { 'table-col': { width: '150' } })
+              );
 
-            delta = delta.concat(
-              this.convertChildren(node, child, op, indent, {
-                align: (child as any).align
-              })
-            );
+              delta = delta.concat(
+                this.convertChildren(node, child, op, indent, {
+                  align: (child as any).align
+                })
+              );
+            }
             break;
           case 'tableRow':
-            delta = delta.concat(
-              this.convertChildren(node, child, op, indent, {
-                ...extra,
-                rowId: this.generateId()
-              })
-            );
+            if (!this.options.enableTableV2) {
+              delta = delta.concat(
+                this.convertChildren(node, child, op, indent, {
+                  ...extra,
+                  rowId: this.generateId()
+                })
+              );
+            }
             break;
           case 'tableCell':
-            const cellIndex = children.indexOf(child) + 1 + '';
-            const align = extra && extra.align;
-            const alignCell =
-              align && Array.isArray(align) && align.length > idx && align[idx];
-            if (this.options.debug) {
-              console.log('align', alignCell, align, idx);
+            if (!this.options.enableTableV2) {
+              const cellIndex = children.indexOf(child) + 1 + '';
+              const align = extra && extra.align;
+              const alignCell =
+                align && Array.isArray(align) && align.length > idx && align[idx];
+              if (this.options.debug) {
+                console.log('align', alignCell, align, idx);
+              }
+              delta = delta.concat(
+                this.convertTableCell(
+                  node,
+                  child,
+                  extra && extra.rowId,
+                  alignCell,
+                  cellIndex
+                )
+              );
             }
-            delta = delta.concat(
-              this.convertTableCell(
-                node,
-                child,
-                extra && extra.rowId,
-                alignCell,
-                cellIndex
-              )
-            );
             break;
           case 'heading':
             delta = delta.concat(
@@ -479,6 +507,153 @@ export class MarkdownToQuill {
     }
     return delta;
   }
+
+  private convertChildrenForTableV2(
+    parent: Node | Parent,
+    node: Node | Parent,
+    op: Op = {},
+    indent = 0
+  ): Delta {
+    // Similar to convertChildren but handles images without alt attribute
+    const { children } = node as any;
+    let delta = new Delta();
+
+    if (children) {
+      children.forEach((child) => {
+        if (child.type === 'image') {
+          // For table-v2, insert images without alt attribute
+          delta.push({ insert: { image: child.url } });
+        } else {
+          // For other content, use regular conversion
+          const d = this.convertInline(parent, child, op);
+          if (d) {
+            delta = delta.concat(d);
+          }
+        }
+      });
+    }
+
+    return delta;
+  }
+
+  private convertTableV2(node: any): Delta {
+    const delta = new Delta();
+
+    // Generate IDs for rows and columns
+    const rowIds: string[] = [];
+    const columnIds: string[] = [];
+    const cells: { [key: string]: any } = {};
+
+    // Get table structure
+    const rows = node.children;
+    const columnCount = rows[0]?.children?.length || 0;
+
+    // Generate column IDs
+    for (let i = 0; i < columnCount; i++) {
+      columnIds.push(this.options.generateColumnId!());
+    }
+
+    // Process each row
+    rows.forEach((row: any, rowIndex: number) => {
+      const rowId = this.options.generateRowId!();
+      rowIds.push(rowId);
+
+      // Process each cell in the row
+      row.children.forEach((cell: any, colIndex: number) => {
+        const cellKey = `${rowIndex + 1}:${colIndex + 1}`;
+
+        // Convert cell content - preserve ALL content types
+        const cellContent: Op[] = [];
+        // For table-v2, we need to handle images without alt attribute
+        const cellDelta = this.convertChildrenForTableV2(row, cell, {}, 0);
+
+        // Process ops but keep all content types (images, embeds, etc.)
+        // Also handle <br> tags for multiline content
+        const SYMBOLS_TO_SPLIT = ['<br>', '<br/>'];
+
+        cellDelta.ops.forEach((op: Op) => {
+          if (typeof op.insert === 'string' &&
+              SYMBOLS_TO_SPLIT.some(symbol => (op.insert as string).includes(symbol))) {
+            // Split the string by <br> tags
+            let parts = [op.insert as string];
+            SYMBOLS_TO_SPLIT.forEach(symbol => {
+              parts = parts.reduce((acc: string[], part) => {
+                return acc.concat(part.split(symbol));
+              }, []);
+            });
+
+            // Add each part with line breaks between them
+            parts.forEach((part, index) => {
+              if (part) {
+                if (op.attributes) {
+                  cellContent.push({ insert: part, attributes: op.attributes });
+                } else {
+                  cellContent.push({ insert: part });
+                }
+              }
+              if (index < parts.length - 1) {
+                cellContent.push({ insert: '\n' });
+              }
+            });
+          } else {
+            cellContent.push(op);
+          }
+        });
+
+        // Handle alignment on the newline insert
+        const align = (node as any).align;
+        let newlineAttributes: any = {};
+        if (align && Array.isArray(align) && align[colIndex] && align[colIndex] !== 'left') {
+          newlineAttributes.align = align[colIndex];
+        }
+
+        // Ensure cell content ends with newline
+        const lastOp = cellContent[cellContent.length - 1];
+        if (!lastOp || lastOp.insert !== '\n') {
+          if (Object.keys(newlineAttributes).length > 0) {
+            cellContent.push({ insert: '\n', attributes: newlineAttributes });
+          } else {
+            cellContent.push({ insert: '\n' });
+          }
+        } else if (Object.keys(newlineAttributes).length > 0) {
+          // If last op is already a newline, add alignment to it
+          (lastOp as any).attributes = { ...(lastOp as any).attributes, ...newlineAttributes };
+        }
+
+        // Build cell attributes
+        const cellAttributes: any = {
+          // Check if cell has colspan/rowspan attributes (from extended markdown)
+          colspan: (cell as any).colspan || '1',
+          rowspan: (cell as any).rowspan || '1'
+        };
+
+        // Note: alignment is handled on the content level, not cell attributes
+        // Cell vertical alignment would be added here if available from markdown
+        // Example: cellAttributes['cell-vertical-alignment'] = 'middle';
+
+        cells[cellKey] = {
+          content: cellContent,
+          attributes: cellAttributes
+        };
+      });
+    });
+
+    // Build the table-embed structure
+    const tableEmbed = {
+      'table-embed': {
+        rows: rowIds.map(id => ({ insert: { id } })),
+        columns: columnIds.map(id => ({
+          insert: { id },
+          attributes: { width: this.options.defaultColumnWidth || '238' }
+        })),
+        cells
+      }
+    };
+
+    delta.push({ insert: tableEmbed });
+
+    return delta;
+  }
 }
 
 export function getFlattenParagraphs(node: any): Parent[] {
@@ -526,7 +701,7 @@ export function normalizeInputText(text: string): string {
   const lines = text.split('\n');
   return lines
     .map((line) => {
-      return line.trimEnd();
+      return line.replace(/\s+$/, '');
     })
     .join('\n');
 }

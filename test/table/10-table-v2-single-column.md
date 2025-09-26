@@ -1,0 +1,5 @@
+| Single Column |
+|---------------|
+| Row 1         |
+| Row 2         |
+| Row 3         |

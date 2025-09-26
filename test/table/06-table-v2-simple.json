@@ -1,0 +1,34 @@
+[
+  {
+    "insert": {
+      "table-embed": {
+        "rows": [
+          { "insert": { "id": "row-1" } },
+          { "insert": { "id": "row-2" } }
+        ],
+        "columns": [
+          { "insert": { "id": "column-1" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-2" }, "attributes": { "width": "238" } }
+        ],
+        "cells": {
+          "1:1": {
+            "content": [{ "insert": "Header 1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:2": {
+            "content": [{ "insert": "Header 2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:1": {
+            "content": [{ "insert": "Cell 1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:2": {
+            "content": [{ "insert": "Cell 2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "insert": {
+      "table-embed": {
+        "rows": [
+          { "insert": { "id": "row-1" } }
+        ],
+        "columns": [
+          { "insert": { "id": "column-1" }, "attributes": { "width": "238" } }
+        ],
+        "cells": {
+          "1:1": {
+            "content": [{ "insert": "Single Cell" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          }
+        }
+      }
+    }
+  }
+]

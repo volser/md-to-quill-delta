@@ -1,0 +1,56 @@
+[
+  {
+    "insert": {
+      "table-embed": {
+        "rows": [
+          { "insert": { "id": "row-1" } },
+          { "insert": { "id": "row-2" } },
+          { "insert": { "id": "row-3" } }
+        ],
+        "columns": [
+          { "insert": { "id": "column-1" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-2" }, "attributes": { "width": "238" } },
+          { "insert": { "id": "column-3" }, "attributes": { "width": "238" } }
+        ],
+        "cells": {
+          "1:1": {
+            "content": [{ "insert": "Left" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:2": {
+            "content": [{ "insert": "Center" }, { "insert": "\n", "attributes": { "align": "center" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "1:3": {
+            "content": [{ "insert": "Right" }, { "insert": "\n", "attributes": { "align": "right" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:1": {
+            "content": [{ "insert": "L1" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:2": {
+            "content": [{ "insert": "C1" }, { "insert": "\n", "attributes": { "align": "center" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "2:3": {
+            "content": [{ "insert": "R1" }, { "insert": "\n", "attributes": { "align": "right" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:1": {
+            "content": [{ "insert": "L2" }, { "insert": "\n" }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:2": {
+            "content": [{ "insert": "C2" }, { "insert": "\n", "attributes": { "align": "center" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          },
+          "3:3": {
+            "content": [{ "insert": "R2" }, { "insert": "\n", "attributes": { "align": "right" } }],
+            "attributes": { "colspan": "1", "rowspan": "1" }
+          }
+        }
+      }
+    }
+  }
+]
