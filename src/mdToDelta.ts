@@ -417,12 +417,19 @@ export class MarkdownToQuill {
 
   private convertListItem(parent: any, node: any, indent = 0): Delta {
     let delta = new Delta();
+
     for (const child of node.children) {
       delta = delta.concat(this.convertListItemChild(parent, node, child, indent));
     }
+
+    if(!delta.ops.length) {
+      delta = delta.insert(`${parent.start}.`);
+    }
+
     if (this.options.debug) {
       console.log('list item', delta.ops);
     }
+
     return delta;
   }
 
