@@ -4,6 +4,7 @@ import Op from 'quill-delta/dist/Op';
 import Delta from 'quill-delta';
 import { MarkdownToQuill } from '../src/mdToDelta';
 import { defaultCustomHtmlConverter } from '../src/html-converter';
+
 interface Test {
   name: string;
   ops: Op[];
@@ -51,13 +52,15 @@ describe('Remark-Delta Transformer', () => {
       const jsonFilePath = path.join(directory, `${baseFileName}.json`);
       const markdownFilePath = path.join(directory, `${baseFileName}.md`);
       const optionsPath = path.join(directory, `${baseFileName}.options.json`);
-      const options = fs.existsSync(optionsPath) ? JSON.parse(fs.readFileSync(optionsPath, 'utf-8')) : {};
+      const options = fs.existsSync(optionsPath)
+        ? JSON.parse(fs.readFileSync(optionsPath, 'utf-8'))
+        : {};
 
       tests.push({
         name: `${path.basename(directory)}/${baseFileName}`,
         ops: JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8')),
         markdown: fs.readFileSync(markdownFilePath, 'utf-8'),
-        options,
+        options
       });
     }
   }
@@ -83,7 +86,7 @@ describe('Remark-Delta Transformer', () => {
           return `column-${colId}`;
         },
         ...t.options,
-        customHtmlConverter: defaultCustomHtmlConverter,
+        customHtmlConverter: defaultCustomHtmlConverter
       });
       const ops = converter.convert(t.markdown);
       const delta = new Delta();

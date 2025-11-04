@@ -19,7 +19,7 @@ export interface MarkdownToQuillOptions {
     parent: Node | Parent,
     node: Node | Parent,
     op: Op,
-    indent,
+    indent
   ) => Delta | undefined;
   enableTableV2?: boolean;
   generateRowId?: () => string;
@@ -58,7 +58,7 @@ const defaultOptions: MarkdownToQuillOptions = {
       .slice(2, 9);
     return `column-${id}`;
   },
-  defaultColumnWidth: '238',
+  defaultColumnWidth: '238'
 };
 
 export class MarkdownToQuill {
@@ -81,7 +81,7 @@ export class MarkdownToQuill {
     const normalizedText = normalizeInputText(text);
     const tree: Parent = fromMarkdown(normalizedText, {
       extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem()],
-      mdastExtensions: [gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown()],
+      mdastExtensions: [gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown()]
     }) as Parent;
 
     /**
@@ -107,17 +107,17 @@ export class MarkdownToQuill {
         ? {
           'code-block': {
             'code-block': child.lang ?? defaultLang,
-            'in-list': 'none',
-          },
+            'in-list': 'none'
+          }
         }
         : {
           'code-block': {
-            'code-block': child.lang ?? defaultLang,
-          },
+            'code-block': child.lang ?? defaultLang
+          }
         };
       delta.push({
         insert: '\n',
-        attributes,
+        attributes
       });
     });
 
@@ -417,12 +417,19 @@ export class MarkdownToQuill {
 
   private convertListItem(parent: any, node: any, indent = 0): Delta {
     let delta = new Delta();
+
     for (const child of node.children) {
       delta = delta.concat(this.convertListItemChild(parent, node, child, indent));
     }
+
+    if (!delta.ops.length) {
+      delta = delta.insert(`${parent.start}.`);
+    }
+
     if (this.options.debug) {
       console.log('list item', delta.ops);
     }
+
     return delta;
   }
 
@@ -683,11 +690,11 @@ export function normalizeTreeNode(root: any): Parent {
         if (child.type === 'blockquote') {
           return {
             ...child,
-            children: getFlattenParagraphs(child),
+            children: getFlattenParagraphs(child)
           };
         }
         return normalizeTreeNode(child);
-      }),
+      })
     };
   }
   return root;
