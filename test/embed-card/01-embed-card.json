@@ -1,0 +1,16 @@
+[
+  {
+    "insert": {
+      "embed_card": {
+        "cardId": "123",
+        "embeddedCardType": "standalone",
+        "height": 400,
+        "cardColumnWidth": 12,
+        "type": "embed_card"
+      }
+    }
+  },
+  {
+    "insert": "\n"
+  }
+]

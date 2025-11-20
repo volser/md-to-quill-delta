@@ -8,6 +8,7 @@ import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
 import { gfmStrikethroughFromMarkdown } from 'mdast-util-gfm-strikethrough';
 import { gfmTaskListItemFromMarkdown } from 'mdast-util-gfm-task-list-item';
 import { Parent } from 'unist';
+import { embedCardFromMarkdown, embedCardSyntax } from './embed-card-extension';
 
 export interface MarkdownToQuillOptions {
   debug?: boolean;
@@ -80,8 +81,8 @@ export class MarkdownToQuill {
   convert(text: string): Op[] {
     const normalizedText = normalizeInputText(text);
     const tree: Parent = fromMarkdown(normalizedText, {
-      extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem()],
-      mdastExtensions: [gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown()]
+      extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem(), embedCardSyntax()],
+      mdastExtensions: [gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown(), embedCardFromMarkdown()]
     }) as Parent;
 
     /**
@@ -237,6 +238,14 @@ export class MarkdownToQuill {
             delta.insert({ divider: true });
             delta.insert('\n');
             break;
+           case 'embed-card':
+            delta = delta.concat(
+              this.embedCardFormat(
+                child,
+              )
+            );
+            delta.insert('\n');
+            break;
           case 'break':
             delta.insert('\n');
             break;
@@ -366,6 +375,12 @@ export class MarkdownToQuill {
     return new Delta().push({
       insert: value,
       attributes: { ...op.attributes, ...attributes }
+    });
+  }
+
+  private embedCardFormat(node: any ): Delta {
+    return new Delta().push({
+      insert: { embed_card: { ...node.data, type: 'embed_card' } },
     });
   }
 
