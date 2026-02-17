@@ -228,12 +228,17 @@ export class MarkdownToQuill {
               attributes: { header: child.depth || 1 }
             });
             break;
-          case 'blockquote':
+          case 'blockquote': {
+            let prevBlockquoteAttributes = this.splitAttributes;
+            const blockquoteAttributes = { blockquote: {} };
+            this.splitAttributes = blockquoteAttributes;
             delta = delta.concat(
               this.convertChildren(node, child, op, indent + 1)
             );
-            delta.push({ insert: '\n', attributes: { blockquote: {} } });
+            delta.push({ insert: '\n', attributes: blockquoteAttributes });
+            this.splitAttributes = prevBlockquoteAttributes;
             break;
+          }
           case 'thematicBreak':
             delta.insert({ divider: true });
             delta.insert('\n');
