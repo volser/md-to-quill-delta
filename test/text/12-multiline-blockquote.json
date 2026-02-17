@@ -1,0 +1,29 @@
+[
+  {
+    "insert": "Line 1"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "blockquote": {}
+    }
+  },
+  {
+    "insert": "Line 2"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "blockquote": {}
+    }
+  },
+  {
+    "insert": "Line 3"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "blockquote": {}
+    }
+  }
+]
