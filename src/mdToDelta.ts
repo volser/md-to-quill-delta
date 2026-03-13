@@ -12,13 +12,11 @@ import type { Node, Parent } from 'unist';
 export type Logger = (message: string, ...args: unknown[]) => void;
 
 export interface MarkdownToQuillOptions {
-  debug?: boolean;
   logger?: Logger;
   tableIdGenerator: () => string;
 }
 
 const defaultOptions: MarkdownToQuillOptions = {
-  debug: false,
   tableIdGenerator: () => {
     const id = Math.random().toString(36).slice(2, 6);
     return `row-${id}`;
@@ -36,7 +34,7 @@ export class MarkdownToQuill {
       ...defaultOptions,
       ...options,
     };
-    this.log = this.options.logger ?? (this.options.debug ? console.log : () => {});
+    this.log = this.options.logger ?? (() => {});
   }
 
   convert(text: string): Op[] {

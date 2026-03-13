@@ -26,7 +26,7 @@ const ops = converter.convert('# Hello **world**');
 
 ```typescript
 const converter = new MarkdownToQuill({
-  debug: false,               // log the parsed AST
+  logger: console.log,        // enable debug logging (silent by default)
   tableIdGenerator: () => id  // custom row ID generator for table cells
 });
 ```
