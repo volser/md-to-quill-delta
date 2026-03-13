@@ -1,4 +1,4 @@
-import type { Link } from 'mdast';
+import type { Image, Link } from 'mdast';
 import type { InlineHandler } from '../types';
 
 export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
@@ -8,5 +8,9 @@ export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
     delete: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { strike: true }),
     inlineCode: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { code: true }),
     link: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { link: (child as Link).url }),
+    image: (ctx, child) => {
+      const node = child as Image;
+      return ctx.converter.embedFormat(ctx.op, { image: node.url }, node.alt ? { alt: node.alt } : null);
+    },
   };
 }

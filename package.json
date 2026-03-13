@@ -46,7 +46,10 @@
   "keywords": [
     "quill",
     "delta",
-    "markdown"
+    "markdown",
+    "quilljs",
+    "markdown-to-delta",
+    "markdown-converter"
   ],
   "author": "Sergiy VOloshyn <sergey.voloshyn@gmail.com>",
   "license": "BSD-3-Clause",

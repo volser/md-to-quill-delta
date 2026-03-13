@@ -18,6 +18,12 @@ function defaultIdGenerator(): string {
   return `row-${id}`;
 }
 
+interface InternalConfig {
+  options: MarkdownToQuillOptions;
+  blockHandlers: Map<string, BlockHandler>;
+  inlineHandlers: Map<string, InlineHandler>;
+}
+
 export class MarkdownToQuill implements HandlerUtils {
   private readonly options: MarkdownToQuillOptions;
   readonly log: Logger;
@@ -25,7 +31,7 @@ export class MarkdownToQuill implements HandlerUtils {
   private readonly blockHandlers: Map<string, BlockHandler>;
   private readonly inlineHandlers: Map<string, InlineHandler>;
 
-  constructor(options?: Partial<MarkdownToQuillOptions>) {
+  constructor(options?: MarkdownToQuillOptions) {
     this.options = options ?? {};
     this.log = this.options.logger ?? (() => {});
     this.blockTypes = new Set(options?.blockTypes ?? DEFAULT_BLOCK_TYPES);
@@ -43,6 +49,15 @@ export class MarkdownToQuill implements HandlerUtils {
         this.inlineHandlers.set(type, handler);
       }
     }
+  }
+
+  private static fromInternal(config: InternalConfig): MarkdownToQuill {
+    const instance = new MarkdownToQuill(config.options);
+    instance.blockHandlers.clear();
+    instance.inlineHandlers.clear();
+    for (const [k, v] of config.blockHandlers) instance.blockHandlers.set(k, v);
+    for (const [k, v] of config.inlineHandlers) instance.inlineHandlers.set(k, v);
+    return instance;
   }
 
   convert(text: string): Delta {
@@ -84,23 +99,30 @@ export class MarkdownToQuill implements HandlerUtils {
         idx,
         converter: this,
       };
-      const blockHandler = this.blockHandlers.get(child.type);
 
-      if (blockHandler) {
-        delta = delta.concat(blockHandler(ctx, child));
-      } else {
-        const inlineHandler = this.inlineHandlers.get(child.type);
-        if (inlineHandler) {
-          const d = inlineHandler(ctx, child);
-          if (d) {
-            delta = delta.concat(d);
-          }
+      try {
+        const blockHandler = this.blockHandlers.get(child.type);
+
+        if (blockHandler) {
+          delta = delta.concat(blockHandler(ctx, child));
         } else {
-          const d = this.inlineFormat(parentNode, child, op, {});
-          if (d) {
-            delta = delta.concat(d);
+          const inlineHandler = this.inlineHandlers.get(child.type);
+          if (inlineHandler) {
+            const d = inlineHandler(ctx, child);
+            if (d) {
+              delta = delta.concat(d);
+            }
+          } else {
+            const d = this.inlineFormat(parentNode, child, op, {});
+            if (d) {
+              delta = delta.concat(d);
+            }
           }
         }
+      } catch (error) {
+        const pos = child.position?.start;
+        const location = pos ? ` at line ${pos.line}, column ${pos.column}` : '';
+        throw new Error(`Failed to convert "${child.type}" node${location}`, { cause: error });
       }
 
       prevType = child.type;
@@ -137,24 +159,22 @@ export class MarkdownToQuill implements HandlerUtils {
   }
 
   withBlock(type: string, handler: BlockHandler): MarkdownToQuill {
-    return new MarkdownToQuill({
-      ...this.options,
-      blockHandlers: {
-        ...Object.fromEntries(this.blockHandlers),
-        [type]: handler,
-      },
-      inlineHandlers: Object.fromEntries(this.inlineHandlers),
+    const blockHandlers = new Map(this.blockHandlers);
+    blockHandlers.set(type, handler);
+    return MarkdownToQuill.fromInternal({
+      options: this.options,
+      blockHandlers,
+      inlineHandlers: this.inlineHandlers,
     });
   }
 
   withInline(type: string, handler: InlineHandler): MarkdownToQuill {
-    return new MarkdownToQuill({
-      ...this.options,
-      blockHandlers: Object.fromEntries(this.blockHandlers),
-      inlineHandlers: {
-        ...Object.fromEntries(this.inlineHandlers),
-        [type]: handler,
-      },
+    const inlineHandlers = new Map(this.inlineHandlers);
+    inlineHandlers.set(type, handler);
+    return MarkdownToQuill.fromInternal({
+      options: this.options,
+      blockHandlers: this.blockHandlers,
+      inlineHandlers,
     });
   }
 }

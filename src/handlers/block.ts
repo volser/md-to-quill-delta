@@ -1,4 +1,4 @@
-import type { AlignType, Code, Heading, Image, List, ListItem, Parents, Table, TableCell } from 'mdast';
+import type { AlignType, Code, Heading, List, ListItem, Parents, Table, TableCell } from 'mdast';
 import Delta from 'quill-delta';
 import type { BlockHandler, HandlerUtils } from '../types';
 
@@ -28,7 +28,7 @@ function convertListItem(utils: HandlerUtils, parent: List, node: ListItem, inde
   return delta;
 }
 
-function convertTableCell(utils: HandlerUtils, parent: Parents, node: TableCell, tableId: string, align: AlignType | undefined): Delta {
+function convertTableCell(utils: HandlerUtils, parent: Parents, node: TableCell, tableId: string, align: AlignType | null): Delta {
   let delta = new Delta();
   delta = delta.concat(utils.convertChildren(parent, node, {}, 1));
   const attributes: Record<string, unknown> = { table: tableId };
@@ -53,11 +53,12 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       const node = child as Code;
       const delta = new Delta();
       const lines = node.value.split('\n');
+      const codeBlock: string | boolean = node.lang || true;
       for (const line of lines) {
         if (line) {
           delta.push({ insert: line });
         }
-        delta.push({ insert: '\n', attributes: { 'code-block': true } });
+        delta.push({ insert: '\n', attributes: { 'code-block': codeBlock } });
       }
       return delta;
     },
@@ -70,7 +71,7 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
     table: (ctx, child) => {
       const node = child as Table;
       return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent, {
-        align: node.align?.map((a) => a ?? undefined),
+        align: node.align ?? undefined,
       });
     },
     tableRow: (ctx, child) => {
@@ -81,7 +82,7 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
     },
     tableCell: (ctx, child) => {
       const align = ctx.extra?.align;
-      const alignCell = align && align.length > ctx.idx ? align[ctx.idx] : undefined;
+      const alignCell = align && align.length > ctx.idx ? align[ctx.idx] : null;
       ctx.converter.log('align', alignCell, align, ctx.idx);
       return convertTableCell(ctx.converter, ctx.node, child as TableCell, ctx.extra?.id ?? '', alignCell);
     },
@@ -104,10 +105,6 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       delta.insert({ divider: true });
       delta.insert('\n');
       return delta;
-    },
-    image: (ctx, child) => {
-      const node = child as Image;
-      return ctx.converter.embedFormat(ctx.op, { image: node.url }, node.alt ? { alt: node.alt } : null);
     },
   };
 }

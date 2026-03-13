@@ -11,7 +11,7 @@ export interface Op {
 }
 
 export interface ConvertExtra {
-  align?: (AlignType | undefined)[];
+  align?: (AlignType | null)[];
   id?: string;
 }
 
