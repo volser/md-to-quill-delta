@@ -18,12 +18,6 @@ function defaultIdGenerator(): string {
   return `row-${id}`;
 }
 
-interface InternalConfig {
-  options: MarkdownToQuillOptions;
-  blockHandlers: Map<string, BlockHandler>;
-  inlineHandlers: Map<string, InlineHandler>;
-}
-
 export class MarkdownToQuill implements HandlerUtils {
   private readonly options: MarkdownToQuillOptions;
   readonly log: Logger;
@@ -49,15 +43,6 @@ export class MarkdownToQuill implements HandlerUtils {
         this.inlineHandlers.set(type, handler);
       }
     }
-  }
-
-  private static fromInternal(config: InternalConfig): MarkdownToQuill {
-    const instance = new MarkdownToQuill(config.options);
-    instance.blockHandlers.clear();
-    instance.inlineHandlers.clear();
-    for (const [k, v] of config.blockHandlers) instance.blockHandlers.set(k, v);
-    for (const [k, v] of config.inlineHandlers) instance.inlineHandlers.set(k, v);
-    return instance;
   }
 
   convert(text: string): Delta {
@@ -155,26 +140,6 @@ export class MarkdownToQuill implements HandlerUtils {
     return new Delta().push({
       insert: value,
       attributes: { ...op.attributes, ...attributes },
-    });
-  }
-
-  withBlock(type: string, handler: BlockHandler): MarkdownToQuill {
-    const blockHandlers = new Map(this.blockHandlers);
-    blockHandlers.set(type, handler);
-    return MarkdownToQuill.fromInternal({
-      options: this.options,
-      blockHandlers,
-      inlineHandlers: this.inlineHandlers,
-    });
-  }
-
-  withInline(type: string, handler: InlineHandler): MarkdownToQuill {
-    const inlineHandlers = new Map(this.inlineHandlers);
-    inlineHandlers.set(type, handler);
-    return MarkdownToQuill.fromInternal({
-      options: this.options,
-      blockHandlers: this.blockHandlers,
-      inlineHandlers,
     });
   }
 }

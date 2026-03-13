@@ -3,12 +3,7 @@ import type Delta from 'quill-delta';
 
 export type Logger = (message: string, ...args: unknown[]) => void;
 
-export interface Op {
-  insert?: string | object;
-  delete?: number;
-  retain?: number;
-  attributes?: Record<string, unknown>;
-}
+export type Op = Delta['ops'][number];
 
 export interface ConvertExtra {
   align?: (AlignType | null)[];
