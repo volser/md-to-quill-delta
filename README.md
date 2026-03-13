@@ -19,7 +19,8 @@ npm install md-to-quill-delta
 import { MarkdownToQuill } from 'md-to-quill-delta';
 
 const converter = new MarkdownToQuill();
-const ops = converter.convert('# Hello **world**');
+const delta = converter.convert('# Hello **world**');
+// delta is a Quill Delta instance; use delta.ops for the raw ops array
 ```
 
 ### Options
