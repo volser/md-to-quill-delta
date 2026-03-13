@@ -36,7 +36,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "postversion": "npm run check && npm run build && git push && npm publish && npm run clean"
+    "postversion": "npm run check && npm run build && git push && npm publish && npm run clean",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "repository": {
     "type": "git",
@@ -57,7 +58,6 @@
     "@biomejs/biome": "^2.3.14",
     "@types/node": "^20.12.12",
     "@types/unist": "^3.0.2",
-    "husky": "^3.0.9",
     "quill": "^2.0.0-dev.3",
     "tsup": "^8.4.0",
     "typescript": "^5.4.5",
