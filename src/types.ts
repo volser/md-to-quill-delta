@@ -38,7 +38,7 @@ export type InlineHandler = (ctx: ConvertContext, child: RootContent) => Delta |
 
 export interface MarkdownToQuillOptions {
   logger?: Logger;
-  tableIdGenerator: () => string;
+  tableIdGenerator?: () => string;
   blockHandlers?: Record<string, BlockHandler>;
   inlineHandlers?: Record<string, InlineHandler>;
   blockTypes?: string[];
