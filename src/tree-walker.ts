@@ -75,7 +75,9 @@ export class TreeWalker implements HandlerUtils {
       } catch (error) {
         const pos = child.position?.start;
         const location = pos ? ` at line ${pos.line}, column ${pos.column}` : '';
-        throw new Error(`Failed to convert "${child.type}" node${location}`, { cause: error });
+        throw new Error(`Failed to convert "${child.type}" node${location}`, {
+          cause: error,
+        });
       }
 
       prevType = child.type;
@@ -103,10 +105,11 @@ export class TreeWalker implements HandlerUtils {
     return op.insert ? new Delta().push(op) : null;
   }
 
-  embedFormat(op: Op, value: Record<string, unknown>, attributes?: Record<string, unknown> | null): Delta {
+  embedFormat(op: Op, value: Record<string, unknown>, attrs?: Record<string, unknown> | null): Delta {
+    const attributes = attrs?.length ? { ...op.attributes, ...attrs } : op.attributes;
     return new Delta().push({
       insert: value,
-      attributes: { ...op.attributes, ...attributes },
+      attributes,
     });
   }
 }
