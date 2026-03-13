@@ -1,5 +1,4 @@
 import type { AlignType, Parents, RootContent } from 'mdast';
-import type { Extension as MicromarkExtension } from 'micromark-util-types';
 import type Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
 import type { MarkdownToQuill } from './mdToDelta';
@@ -29,6 +28,8 @@ export interface MarkdownToQuillOptions {
   tableIdGenerator: () => string;
   blockHandlers?: Record<string, BlockHandler>;
   inlineHandlers?: Record<string, InlineHandler>;
+  /** Top-level block types that get inter-block newlines inserted between them */
+  blockTypes?: string[];
   mdastExtensions?: object[];
-  micromarkExtensions?: MicromarkExtension[];
+  micromarkExtensions?: object[];
 }

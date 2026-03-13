@@ -12,7 +12,11 @@ import { createDefaultBlockHandlers } from './handlers/block';
 import { createDefaultInlineHandlers } from './handlers/inline';
 import type { BlockHandler, ConvertContext, ConvertExtra, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
 
-export type { BlockHandler, ConvertContext, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
+export { createDefaultBlockHandlers } from './handlers/block';
+export { createDefaultInlineHandlers } from './handlers/inline';
+export type { BlockHandler, ConvertContext, ConvertExtra, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
+
+const DEFAULT_BLOCK_TYPES = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
 const defaultOptions: MarkdownToQuillOptions = {
   tableIdGenerator: () => {
@@ -24,7 +28,7 @@ const defaultOptions: MarkdownToQuillOptions = {
 export class MarkdownToQuill {
   private readonly options: MarkdownToQuillOptions;
   readonly log: Logger;
-  private readonly blocks = new Set(['paragraph', 'code', 'heading', 'blockquote', 'list', 'table']);
+  private readonly blockTypes: Set<string>;
   private readonly blockHandlers: Map<string, BlockHandler>;
   private readonly inlineHandlers: Map<string, InlineHandler>;
 
@@ -34,6 +38,7 @@ export class MarkdownToQuill {
       ...options,
     };
     this.log = this.options.logger ?? (() => {});
+    this.blockTypes = new Set(options?.blockTypes ?? DEFAULT_BLOCK_TYPES);
 
     this.blockHandlers = new Map(Object.entries(createDefaultBlockHandlers()));
     this.inlineHandlers = new Map(Object.entries(createDefaultInlineHandlers()));
@@ -116,7 +121,7 @@ export class MarkdownToQuill {
   }
 
   private isBlock(type: string): boolean {
-    return this.blocks.has(type);
+    return this.blockTypes.has(type);
   }
 
   inlineFormat(parent: Parents, node: RootContent, op: Op, attributes: Record<string, unknown>): Delta | null {
@@ -178,5 +183,21 @@ export class MarkdownToQuill {
     delta.insert('\n', attributes);
     this.log('table cell', delta.ops, align);
     return delta;
+  }
+
+  withBlock(type: string, handler: BlockHandler): MarkdownToQuill {
+    return new MarkdownToQuill({
+      ...this.options,
+      blockHandlers: { ...Object.fromEntries(this.blockHandlers), [type]: handler },
+      inlineHandlers: Object.fromEntries(this.inlineHandlers),
+    });
+  }
+
+  withInline(type: string, handler: InlineHandler): MarkdownToQuill {
+    return new MarkdownToQuill({
+      ...this.options,
+      blockHandlers: Object.fromEntries(this.blockHandlers),
+      inlineHandlers: { ...Object.fromEntries(this.inlineHandlers), [type]: handler },
+    });
   }
 }
