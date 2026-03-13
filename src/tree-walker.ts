@@ -97,7 +97,10 @@ export class TreeWalker implements HandlerUtils {
     if (Object.keys(newAttributes).length) {
       op.attributes = newAttributes;
     }
-    return 'children' in node ? this.convertChildren(parent, node as Parents, op) : op.insert ? new Delta().push(op) : null;
+    if ('children' in node) {
+      return this.convertChildren(parent, node as Parents, op);
+    }
+    return op.insert ? new Delta().push(op) : null;
   }
 
   embedFormat(op: Op, value: Record<string, unknown>, attributes?: Record<string, unknown> | null): Delta {
