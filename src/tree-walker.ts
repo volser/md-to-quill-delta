@@ -106,7 +106,7 @@ export class TreeWalker implements HandlerUtils {
   }
 
   embedFormat(op: Op, value: Record<string, unknown>, attrs?: Record<string, unknown> | null): Delta {
-    const attributes = attrs?.length ? { ...op.attributes, ...attrs } : op.attributes;
+    const attributes = attrs ? { ...op.attributes, ...attrs } : op.attributes;
     return new Delta().insert(value, attributes);
   }
 }
