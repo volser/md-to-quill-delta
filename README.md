@@ -1,15 +1,49 @@
 # md-to-quill-delta
 
-[![NPM](https://nodei.co/npm/md-to-quill-delta.png)](https://nodei.co/npm/md-to-quill-delta/)  
-[![Build Status](https://travis-ci.org/volser/md-to-quill-delta.svg?branch=master)](https://travis-ci.org/volser/md-to-quill-delta)
+[![CI](https://github.com/volser/md-to-quill-delta/actions/workflows/ci.yml/badge.svg)](https://github.com/volser/md-to-quill-delta/actions/workflows/ci.yml)
+[![NPM](https://nodei.co/npm/md-to-quill-delta.png)](https://nodei.co/npm/md-to-quill-delta/)
 
+Convert Markdown to [Quill Delta](https://quilljs.com/docs/delta/) format.
+
+Supports standard Markdown and GFM extensions (strikethrough, tables, task lists).
+
+## Installation
+
+```bash
+npm install md-to-quill-delta
+```
 
 ## Usage
 
 ```typescript
 import { MarkdownToQuill } from 'md-to-quill-delta';
 
-const options = { debug: false };
-const converter = new MarkdownToQuill(options);
-const ops = converter.convert(markdown);
+const converter = new MarkdownToQuill();
+const ops = converter.convert('# Hello **world**');
 ```
+
+### Options
+
+```typescript
+const converter = new MarkdownToQuill({
+  debug: false,               // log the parsed AST
+  tableIdGenerator: () => id  // custom row ID generator for table cells
+});
+```
+
+## Supported Markdown
+
+- Text formatting: **bold**, *italic*, ~~strikethrough~~, `inline code`
+- Headings (h1-h6)
+- Blockquotes
+- Ordered and unordered lists
+- Task lists (checkboxes)
+- Nested lists
+- Code blocks
+- Links and images
+- Tables (with alignment)
+- Thematic breaks / horizontal rules
+
+## License
+
+BSD-3-Clause
