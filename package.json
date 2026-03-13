@@ -9,7 +9,7 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "build:umd": "webpack --config webpack.config.ts --mode=production",
+    "build:umd": "webpack --config webpack.config.js --mode=production",
     "build:esm": "tsc --module es2015",
     "build:dist": "npm run build:esm && npm run build:umd",
     "build:clean": "rm -rf dist",
