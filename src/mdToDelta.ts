@@ -13,11 +13,9 @@ import type { BlockHandler, ConvertContext, ConvertExtra, HandlerUtils, InlineHa
 
 const DEFAULT_BLOCK_TYPES = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
-function createDefaultIdGenerator(): () => string {
-  return () => {
-    const id = Math.random().toString(36).slice(2, 6);
-    return `row-${id}`;
-  };
+function defaultIdGenerator(): string {
+  const id = Math.random().toString(36).slice(2, 6);
+  return `row-${id}`;
 }
 
 export class MarkdownToQuill implements HandlerUtils {
@@ -28,10 +26,7 @@ export class MarkdownToQuill implements HandlerUtils {
   private readonly inlineHandlers: Map<string, InlineHandler>;
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
-    this.options = {
-      tableIdGenerator: createDefaultIdGenerator(),
-      ...options,
-    };
+    this.options = options ?? {};
     this.log = this.options.logger ?? (() => {});
     this.blockTypes = new Set(options?.blockTypes ?? DEFAULT_BLOCK_TYPES);
 
@@ -80,7 +75,15 @@ export class MarkdownToQuill implements HandlerUtils {
         delta.insert('\n');
       }
 
-      const ctx: ConvertContext = { parent, node: parentNode, op, indent, extra, idx, converter: this };
+      const ctx: ConvertContext = {
+        parent,
+        node: parentNode,
+        op,
+        indent,
+        extra,
+        idx,
+        converter: this,
+      };
       const blockHandler = this.blockHandlers.get(child.type);
 
       if (blockHandler) {
@@ -106,7 +109,7 @@ export class MarkdownToQuill implements HandlerUtils {
   }
 
   generateId(): string {
-    return this.options.tableIdGenerator();
+    return this.options.tableIdGenerator?.() ?? defaultIdGenerator();
   }
 
   private isBlock(type: string): boolean {
@@ -136,7 +139,10 @@ export class MarkdownToQuill implements HandlerUtils {
   withBlock(type: string, handler: BlockHandler): MarkdownToQuill {
     return new MarkdownToQuill({
       ...this.options,
-      blockHandlers: { ...Object.fromEntries(this.blockHandlers), [type]: handler },
+      blockHandlers: {
+        ...Object.fromEntries(this.blockHandlers),
+        [type]: handler,
+      },
       inlineHandlers: Object.fromEntries(this.inlineHandlers),
     });
   }
@@ -145,7 +151,10 @@ export class MarkdownToQuill implements HandlerUtils {
     return new MarkdownToQuill({
       ...this.options,
       blockHandlers: Object.fromEntries(this.blockHandlers),
-      inlineHandlers: { ...Object.fromEntries(this.inlineHandlers), [type]: handler },
+      inlineHandlers: {
+        ...Object.fromEntries(this.inlineHandlers),
+        [type]: handler,
+      },
     });
   }
 }
