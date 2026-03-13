@@ -6,14 +6,32 @@ import { gfmTaskListItemFromMarkdown } from 'mdast-util-gfm-task-list-item';
 import { gfmStrikethrough } from 'micromark-extension-gfm-strikethrough';
 import { gfmTable } from 'micromark-extension-gfm-table';
 import { gfmTaskListItem } from 'micromark-extension-gfm-task-list-item';
+import type { Extension as MicromarkExtension } from 'micromark-util-types';
 import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
 
 export type Logger = (message: string, ...args: unknown[]) => void;
 
+export interface ConvertContext {
+  parent: Parents | null;
+  node: Parents;
+  op: Op;
+  indent: number;
+  extra?: ConvertExtra;
+  idx: number;
+  converter: MarkdownToQuill;
+}
+
+export type BlockHandler = (ctx: ConvertContext, child: RootContent) => Delta;
+export type InlineHandler = (ctx: ConvertContext, child: RootContent) => Delta | null;
+
 export interface MarkdownToQuillOptions {
   logger?: Logger;
   tableIdGenerator: () => string;
+  blockHandlers?: Record<string, BlockHandler>;
+  inlineHandlers?: Record<string, InlineHandler>;
+  mdastExtensions?: object[];
+  micromarkExtensions?: MicromarkExtension[];
 }
 
 interface ConvertExtra {
@@ -28,10 +46,97 @@ const defaultOptions: MarkdownToQuillOptions = {
   },
 };
 
+function createDefaultBlockHandlers(): Record<string, BlockHandler> {
+  return {
+    paragraph: (ctx, child) => {
+      const delta = ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent + 1);
+      if (!ctx.parent) {
+        delta.insert('\n');
+      }
+      return delta;
+    },
+    code: (_ctx, child) => {
+      const delta = new Delta();
+      const codeNode = child as { value: string };
+      const lines = String(codeNode.value).split('\n');
+      for (const line of lines) {
+        if (line) {
+          delta.push({ insert: line });
+        }
+        delta.push({ insert: '\n', attributes: { 'code-block': true } });
+      }
+      return delta;
+    },
+    list: (ctx, child) => {
+      return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent);
+    },
+    listItem: (ctx, child) => {
+      return ctx.converter.convertListItem(ctx.node as List, child as ListItem, ctx.indent);
+    },
+    table: (ctx, child) => {
+      const tableNode = child as { align?: (AlignType | null)[] | null };
+      return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent, {
+        align: tableNode.align?.map((a) => a ?? undefined) ?? undefined,
+      });
+    },
+    tableRow: (ctx, child) => {
+      return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent, {
+        ...ctx.extra,
+        id: ctx.converter.generateId(),
+      });
+    },
+    tableCell: (ctx, child) => {
+      const align = ctx.extra?.align;
+      const alignCell = align && Array.isArray(align) && align.length > ctx.idx ? align[ctx.idx] : undefined;
+      ctx.converter.log('align', alignCell, align, ctx.idx);
+      return ctx.converter.convertTableCell(ctx.node, child as TableCell, ctx.extra?.id ?? '', alignCell);
+    },
+    heading: (ctx, child) => {
+      const headingNode = child as { depth?: number };
+      const delta = ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent + 1);
+      delta.push({
+        insert: '\n',
+        attributes: { header: headingNode.depth || 1 },
+      });
+      return delta;
+    },
+    blockquote: (ctx, child) => {
+      const delta = ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent + 1);
+      delta.push({ insert: '\n', attributes: { blockquote: true } });
+      return delta;
+    },
+    thematicBreak: () => {
+      const delta = new Delta();
+      delta.insert({ divider: true });
+      delta.insert('\n');
+      return delta;
+    },
+    image: (ctx, child) => {
+      const imgNode = child as { url: string; alt?: string | null };
+      return ctx.converter.embedFormat(ctx.op, { image: imgNode.url }, imgNode.alt ? { alt: imgNode.alt } : null);
+    },
+  };
+}
+
+function createDefaultInlineHandlers(): Record<string, InlineHandler> {
+  return {
+    strong: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { bold: true }),
+    emphasis: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { italic: true }),
+    delete: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { strike: true }),
+    inlineCode: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { code: true }),
+    link: (ctx, child) =>
+      ctx.converter.inlineFormat(ctx.node, child, ctx.op, {
+        link: (child as { url: string }).url,
+      }),
+  };
+}
+
 export class MarkdownToQuill {
   private readonly options: MarkdownToQuillOptions;
-  private readonly log: Logger;
+  readonly log: Logger;
   private readonly blocks = new Set(['paragraph', 'code', 'heading', 'blockquote', 'list', 'table']);
+  private readonly blockHandlers: Map<string, BlockHandler>;
+  private readonly inlineHandlers: Map<string, InlineHandler>;
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
     this.options = {
@@ -39,12 +144,31 @@ export class MarkdownToQuill {
       ...options,
     };
     this.log = this.options.logger ?? (() => {});
+
+    this.blockHandlers = new Map(Object.entries(createDefaultBlockHandlers()));
+    this.inlineHandlers = new Map(Object.entries(createDefaultInlineHandlers()));
+
+    if (options?.blockHandlers) {
+      for (const [type, handler] of Object.entries(options.blockHandlers)) {
+        this.blockHandlers.set(type, handler);
+      }
+    }
+    if (options?.inlineHandlers) {
+      for (const [type, handler] of Object.entries(options.inlineHandlers)) {
+        this.inlineHandlers.set(type, handler);
+      }
+    }
   }
 
   convert(text: string): Op[] {
     const tree: Root = fromMarkdown(text, {
-      extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem()],
-      mdastExtensions: [gfmStrikethroughFromMarkdown(), gfmTableFromMarkdown(), gfmTaskListItemFromMarkdown()],
+      extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem(), ...(this.options.micromarkExtensions ?? [])],
+      mdastExtensions: [
+        gfmStrikethroughFromMarkdown(),
+        gfmTableFromMarkdown(),
+        gfmTaskListItemFromMarkdown(),
+        ...(this.options.mdastExtensions ?? []),
+      ],
     }) as Root;
 
     this.log('tree', tree);
@@ -52,7 +176,7 @@ export class MarkdownToQuill {
     return delta.ops;
   }
 
-  private convertChildren(parent: Parents | null, node: Nodes, op: Op = {}, indent = 0, extra?: ConvertExtra): Delta {
+  convertChildren(parent: Parents | null, node: Nodes, op: Op = {}, indent = 0, extra?: ConvertExtra): Delta {
     if (!('children' in node)) return new Delta();
 
     const parentNode = node as Parents;
@@ -63,72 +187,29 @@ export class MarkdownToQuill {
       if (prevType && this.isBlock(child.type) && this.isBlock(prevType)) {
         delta.insert('\n');
       }
-      switch (child.type) {
-        case 'paragraph':
-          delta = delta.concat(this.convertChildren(parentNode, child, op, indent + 1));
-          if (!parent) {
-            delta.insert('\n');
-          }
-          break;
-        case 'code': {
-          const lines = String(child.value).split('\n');
-          lines.forEach((line) => {
-            if (line) {
-              delta.push({ insert: line });
-            }
-            delta.push({ insert: '\n', attributes: { 'code-block': true } });
-          });
 
-          break;
-        }
-        case 'list':
-          delta = delta.concat(this.convertChildren(parentNode, child, op, indent));
-          break;
-        case 'listItem':
-          delta = delta.concat(this.convertListItem(parentNode as List, child, indent));
-          break;
-        case 'table':
-          delta = delta.concat(
-            this.convertChildren(parentNode, child, op, indent, {
-              align: child.align ?? undefined,
-            }),
-          );
-          break;
-        case 'tableRow':
-          delta = delta.concat(
-            this.convertChildren(parentNode, child, op, indent, {
-              ...extra,
-              id: this.generateId(),
-            }),
-          );
-          break;
-        case 'tableCell': {
-          const align = extra?.align;
-          const alignCell = align && Array.isArray(align) && align.length > idx ? align[idx] : undefined;
-          this.log('align', alignCell, align, idx);
-          delta = delta.concat(this.convertTableCell(parentNode, child, extra?.id ?? '', alignCell));
-          break;
-        }
-        case 'heading':
-          delta = delta.concat(this.convertChildren(parentNode, child, op, indent + 1));
-          delta.push({
-            insert: '\n',
-            attributes: { header: child.depth || 1 },
-          });
-          break;
-        case 'blockquote':
-          delta = delta.concat(this.convertChildren(parentNode, child, op, indent + 1));
-          delta.push({ insert: '\n', attributes: { blockquote: true } });
-          break;
-        case 'thematicBreak':
-          delta.insert({ divider: true });
-          delta.insert('\n');
-          break;
-        case 'image':
-          delta = delta.concat(this.embedFormat(op, { image: child.url }, child.alt ? { alt: child.alt } : null));
-          break;
-        default: {
-          const d = this.convertInline(parentNode, child, op);
+      const ctx: ConvertContext = {
+        parent,
+        node: parentNode,
+        op,
+        indent,
+        extra,
+        idx,
+        converter: this,
+      };
+      const blockHandler = this.blockHandlers.get(child.type);
+
+      if (blockHandler) {
+        delta = delta.concat(blockHandler(ctx, child));
+      } else {
+        const inlineHandler = this.inlineHandlers.get(child.type);
+        if (inlineHandler) {
+          const d = inlineHandler(ctx, child);
+          if (d) {
+            delta = delta.concat(d);
+          }
+        } else {
+          const d = this.inlineFormat(parentNode, child, op, {});
           if (d) {
             delta = delta.concat(d);
           }
@@ -140,32 +221,15 @@ export class MarkdownToQuill {
     return delta;
   }
 
-  private generateId() {
+  generateId(): string {
     return this.options.tableIdGenerator();
   }
 
-  private isBlock(type: string) {
+  private isBlock(type: string): boolean {
     return this.blocks.has(type);
   }
 
-  private convertInline(parent: Parents, child: RootContent, op: Op): Delta | null {
-    switch (child.type) {
-      case 'strong':
-        return this.inlineFormat(parent, child, op, { bold: true });
-      case 'emphasis':
-        return this.inlineFormat(parent, child, op, { italic: true });
-      case 'delete':
-        return this.inlineFormat(parent, child, op, { strike: true });
-      case 'inlineCode':
-        return this.inlineFormat(parent, child, op, { code: true });
-      case 'link':
-        return this.inlineFormat(parent, child, op, { link: child.url });
-      default:
-        return this.inlineFormat(parent, child, op, {});
-    }
-  }
-
-  private inlineFormat(parent: Parents, node: RootContent, op: Op, attributes: Record<string, unknown>): Delta | null {
+  inlineFormat(parent: Parents, node: RootContent, op: Op, attributes: Record<string, unknown>): Delta | null {
     const text = 'value' in node && typeof node.value === 'string' ? node.value : null;
     const newAttributes = { ...op.attributes, ...attributes };
     op = { ...op };
@@ -178,14 +242,14 @@ export class MarkdownToQuill {
     return 'children' in node ? this.convertChildren(parent, node as Parents, op) : op.insert ? new Delta().push(op) : null;
   }
 
-  private embedFormat(op: Op, value: Record<string, unknown>, attributes?: Record<string, unknown> | null): Delta {
+  embedFormat(op: Op, value: Record<string, unknown>, attributes?: Record<string, unknown> | null): Delta {
     return new Delta().push({
       insert: value,
       attributes: { ...op.attributes, ...attributes },
     });
   }
 
-  private convertListItem(parent: List, node: ListItem, indent = 0): Delta {
+  convertListItem(parent: List, node: ListItem, indent = 0): Delta {
     let delta = new Delta();
     for (const child of node.children) {
       delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
@@ -214,7 +278,7 @@ export class MarkdownToQuill {
     return delta;
   }
 
-  private convertTableCell(parent: Parents, node: TableCell, tableId: string, align: AlignType | undefined): Delta {
+  convertTableCell(parent: Parents, node: TableCell, tableId: string, align: AlignType | undefined): Delta {
     let delta = new Delta();
     delta = delta.concat(this.convertChildren(parent, node, {}, 1));
     const attributes: Record<string, unknown> = { table: tableId };
