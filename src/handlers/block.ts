@@ -81,10 +81,10 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       });
     },
     tableCell: (ctx, child) => {
-      const align = ctx.extra?.align;
+      const align = ctx.extra?.align as (AlignType | null)[] | undefined;
       const alignCell = align && align.length > ctx.idx ? align[ctx.idx] : null;
       ctx.converter.log('align', alignCell, align, ctx.idx);
-      return convertTableCell(ctx.converter, ctx.node, child as TableCell, ctx.extra?.id ?? '', alignCell);
+      return convertTableCell(ctx.converter, ctx.node, child as TableCell, (ctx.extra?.id as string) ?? '', alignCell);
     },
     heading: (ctx, child) => {
       const node = child as Heading;

@@ -1,5 +1,5 @@
 import Delta from 'quill-delta';
-import { MarkdownToQuill } from '../src/mdToDelta';
+import { MarkdownToQuill } from '../src/md-to-delta';
 
 describe('MarkdownToQuill', () => {
   test('empty input produces no ops', () => {

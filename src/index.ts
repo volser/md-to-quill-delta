@@ -1,6 +1,6 @@
 export { createDefaultBlockHandlers } from './handlers/block';
 export { createDefaultInlineHandlers } from './handlers/inline';
-export { MarkdownToQuill } from './mdToDelta';
+export { MarkdownToQuill } from './md-to-delta';
 export type {
   BlockHandler,
   ConvertContext,

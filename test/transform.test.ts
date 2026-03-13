@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import Delta from 'quill-delta';
-import { MarkdownToQuill } from '../src/mdToDelta';
+import { MarkdownToQuill } from '../src/md-to-delta';
 
 interface TestCase {
   name: string;

@@ -9,7 +9,7 @@ import { gfmTaskListItem } from 'micromark-extension-gfm-task-list-item';
 import type Delta from 'quill-delta';
 import { createDefaultBlockHandlers } from './handlers/block';
 import { createDefaultInlineHandlers } from './handlers/inline';
-import { TreeWalker } from './treeWalker';
+import { TreeWalker } from './tree-walker';
 import type { BlockHandler, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
 
 const DEFAULT_BLOCK_TYPES = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];

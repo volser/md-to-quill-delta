@@ -1,14 +1,11 @@
-import type { AlignType, Nodes, Parents, RootContent } from 'mdast';
+import type { Nodes, Parents, RootContent } from 'mdast';
 import type Delta from 'quill-delta';
 
 export type Logger = (message: string, ...args: unknown[]) => void;
 
 export type Op = Delta['ops'][number];
 
-export interface ConvertExtra {
-  align?: (AlignType | null)[];
-  id?: string;
-}
+export type ConvertExtra = Record<string, unknown>;
 
 export interface HandlerUtils {
   convertChildren(parent: Parents | null, node: Nodes, op?: Op, indent?: number, extra?: ConvertExtra): Delta;
