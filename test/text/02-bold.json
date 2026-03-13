@@ -1,5 +1,1 @@
-[
-  { "insert": "a text that's " },
-  { "insert": "bold", "attributes": { "bold": true } },
-  { "insert": "\n" }
-]
+[{ "insert": "a text that's " }, { "insert": "bold", "attributes": { "bold": true } }, { "insert": "\n" }]

@@ -2,21 +2,41 @@
   "name": "md-to-quill-delta",
   "version": "1.1.1",
   "description": "Markdown to Quill Delta",
-  "main": "dist/umd/index.js",
-  "module": "dist/mdToDelta.js",
-  "types": "dist/mdToDelta.d.ts",
+  "type": "module",
+  "main": "./dist/mdToDelta.cjs",
+  "module": "./dist/mdToDelta.js",
+  "types": "./dist/mdToDelta.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/mdToDelta.d.ts",
+        "default": "./dist/mdToDelta.js"
+      },
+      "require": {
+        "types": "./dist/mdToDelta.d.cts",
+        "default": "./dist/mdToDelta.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=18"
   },
   "scripts": {
-    "build:umd": "webpack --config webpack.config.js --mode=production",
-    "build:esm": "tsc --module es2015",
-    "build:dist": "npm run build:esm && npm run build:umd",
-    "build:clean": "rm -rf dist",
-    "postversion": "npm run build:dist && git push && npm publish && npm run build:clean",
-    "lint": "tslint -c tslint.json 'src/**/*.ts'",
-    "test": "jest",
-    "test:coverage": "jest --collect-coverage"
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "lint": "biome check src/",
+    "lint:fix": "biome check --write src/",
+    "format": "biome check --write src/ test/",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check src/ && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "postversion": "npm run check && npm run build && git push && npm publish && npm run clean"
   },
   "repository": {
     "type": "git",
@@ -34,28 +54,14 @@
   },
   "homepage": "https://github.com/volser/md-to-quill-delta#readme",
   "devDependencies": {
-    "@babel/core": "^7.24.5",
-    "@babel/plugin-transform-modules-commonjs": "^7.24.1",
-    "@babel/preset-env": "^7.24.4",
-    "@babel/preset-typescript": "^7.24.1",
-    "@types/jest": "^29.5.12",
+    "@biomejs/biome": "^2.3.14",
     "@types/node": "^20.12.12",
     "@types/unist": "^3.0.2",
-    "@types/webpack": "^5.28.5",
-    "babel-jest": "^29.7.0",
-    "coveralls": "^3.0.7",
     "husky": "^3.0.9",
-    "jest": "^29.7.0",
-    "jest-jasmine2": "^29.7.0",
-    "prettier": "1.18.2",
-    "pretty-quick": "^2.0.0",
     "quill": "^2.0.0-dev.3",
-    "ts-loader": "^9.5.1",
-    "tslint": "^5.18.0",
-    "tslint-loader": "^3.5.4",
+    "tsup": "^8.4.0",
     "typescript": "^5.4.5",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4"
+    "vitest": "^3.0.0"
   },
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.0",

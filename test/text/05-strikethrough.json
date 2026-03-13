@@ -1,5 +1,1 @@
-[
-  { "insert": "scratch " },
-  { "insert": "that", "attributes": { "strike": true } },
-  { "insert": "\n" }
-]
+[{ "insert": "scratch " }, { "insert": "that", "attributes": { "strike": true } }, { "insert": "\n" }]

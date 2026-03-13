@@ -1,7 +1,7 @@
 [
   { "insert": "line 1" },
   { "insert": "\n" },
-  { "insert": { "divider": true} },
+  { "insert": { "divider": true } },
   { "insert": "\n" },
   { "insert": "line 2" },
   { "insert": "\n" }

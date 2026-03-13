@@ -1,5 +1,1 @@
-[
-  { "insert": "some " },
-  { "insert": "emphasis", "attributes": { "italic": true } },
-  { "insert": "\n" }
-]
+[{ "insert": "some " }, { "insert": "emphasis", "attributes": { "italic": true } }, { "insert": "\n" }]

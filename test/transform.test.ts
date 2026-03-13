@@ -1,8 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import Op from 'quill-delta/dist/Op';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import Delta from 'quill-delta';
+import type Op from 'quill-delta/dist/Op';
 import { MarkdownToQuill } from '../src/mdToDelta';
+
 interface Test {
   name: string;
   ops: Op[];
@@ -33,12 +34,10 @@ describe('Remark-Delta Transformer', () => {
       } else if (file.endsWith('.json')) {
         matchingFileName = `${baseFileName}.md`;
       } else {
-        throw Error(
-          `Illegal file: ${file}. Allowed file extensions are .md and .json`
-        );
+        throw Error(`Illegal file: ${file}. Allowed file extensions are .md and .json`);
       }
 
-      const matchingFileIdx = files.findIndex(f => f === matchingFileName);
+      const matchingFileIdx = files.indexOf(matchingFileName);
       if (matchingFileIdx === -1) {
         throw Error(`No matching file found for ${file}`);
       }
@@ -50,7 +49,7 @@ describe('Remark-Delta Transformer', () => {
       tests.push({
         name: `${path.basename(directory)}/${baseFileName}`,
         ops: JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8')),
-        markdown: fs.readFileSync(markdownFilePath, 'utf-8')
+        markdown: fs.readFileSync(markdownFilePath, 'utf-8'),
       });
     }
   }
@@ -64,11 +63,13 @@ describe('Remark-Delta Transformer', () => {
         tableIdGenerator: () => {
           id++;
           return String(id);
-        }
+        },
       });
       const ops = converter.convert(t.markdown);
       const delta = new Delta();
-      t.ops.forEach(op => delta.push(op));
+      for (const op of t.ops) {
+        delta.push(op);
+      }
       const expectOps = delta.ops;
       // const diff = delta.diff(new Delta(ops));
       if (debug) {
