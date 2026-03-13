@@ -11,3 +11,4 @@ export type {
   MarkdownToQuillOptions,
   Op,
 } from './types';
+export { blockHandler, inlineHandler } from './types';

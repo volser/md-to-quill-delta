@@ -1,5 +1,5 @@
 import type { Image, Link } from 'mdast';
-import type { InlineHandler } from '../types';
+import { type InlineHandler, inlineHandler } from '../types';
 
 export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
   return {
@@ -7,10 +7,9 @@ export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
     emphasis: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { italic: true }),
     delete: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { strike: true }),
     inlineCode: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { code: true }),
-    link: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { link: (child as Link).url }),
-    image: (ctx, child) => {
-      const node = child as Image;
-      return ctx.converter.embedFormat(ctx.op, { image: node.url }, node.alt ? { alt: node.alt } : null);
-    },
+    link: inlineHandler<Link>((ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { link: child.url })),
+    image: inlineHandler<Image>((ctx, child) => {
+      return ctx.converter.embedFormat(ctx.op, { image: child.url }, child.alt ? { alt: child.alt } : null);
+    }),
   };
 }

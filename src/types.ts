@@ -28,6 +28,14 @@ export interface ConvertContext {
 export type BlockHandler = (ctx: ConvertContext, child: RootContent) => Delta;
 export type InlineHandler = (ctx: ConvertContext, child: RootContent) => Delta | null;
 
+export function blockHandler<T extends RootContent>(fn: (ctx: ConvertContext, child: T) => Delta): BlockHandler {
+  return fn as BlockHandler;
+}
+
+export function inlineHandler<T extends RootContent>(fn: (ctx: ConvertContext, child: T) => Delta | null): InlineHandler {
+  return fn as InlineHandler;
+}
+
 export interface MarkdownToQuillOptions {
   logger?: Logger;
   tableIdGenerator?: () => string;

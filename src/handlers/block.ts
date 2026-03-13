@@ -1,6 +1,6 @@
 import type { AlignType, Code, Heading, List, ListItem, Table, TableCell } from 'mdast';
 import Delta from 'quill-delta';
-import type { BlockHandler } from '../types';
+import { type BlockHandler, blockHandler } from '../types';
 
 export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
   return {
@@ -11,11 +11,10 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       }
       return delta;
     },
-    code: (_ctx, child) => {
-      const node = child as Code;
+    code: blockHandler<Code>((_ctx, child) => {
       const delta = new Delta();
-      const lines = node.value.split('\n');
-      const codeBlock: string | boolean = node.lang || true;
+      const lines = child.value.split('\n');
+      const codeBlock: string | boolean = child.lang || true;
       for (const line of lines) {
         if (line) {
           delta.push({ insert: line });
@@ -23,23 +22,22 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
         delta.push({ insert: '\n', attributes: { 'code-block': codeBlock } });
       }
       return delta;
-    },
+    }),
     list: (ctx, child) => {
       return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent);
     },
-    listItem: (ctx, child) => {
+    listItem: blockHandler<ListItem>((ctx, child) => {
       const parent = ctx.node as List;
-      const node = child as ListItem;
       let delta = new Delta();
-      for (const item of node.children) {
+      for (const item of child.children) {
         delta = delta.concat(ctx.converter.convertChildren(parent, item, {}, ctx.indent + 1));
         if (item.type !== 'list') {
           let listAttribute: string;
           if (parent.ordered) {
             listAttribute = 'ordered';
-          } else if (node.checked) {
+          } else if (child.checked) {
             listAttribute = 'checked';
-          } else if (node.checked === false) {
+          } else if (child.checked === false) {
             listAttribute = 'unchecked';
           } else {
             listAttribute = 'bullet';
@@ -53,27 +51,25 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       }
       ctx.converter.log('list item', delta.ops);
       return delta;
-    },
-    table: (ctx, child) => {
-      const node = child as Table;
+    }),
+    table: blockHandler<Table>((ctx, child) => {
       return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent, {
-        align: node.align ?? undefined,
+        align: child.align ?? undefined,
       });
-    },
+    }),
     tableRow: (ctx, child) => {
       return ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent, {
         ...ctx.extra,
         id: ctx.converter.generateId(),
       });
     },
-    tableCell: (ctx, child) => {
-      const node = child as TableCell;
+    tableCell: blockHandler<TableCell>((ctx, child) => {
       const align = ctx.extra?.align as (AlignType | null)[] | undefined;
       const alignCell = align && align.length > ctx.idx ? align[ctx.idx] : null;
       const tableId = (ctx.extra?.id as string) ?? '';
       ctx.converter.log('align', alignCell, align, ctx.idx);
       let delta = new Delta();
-      delta = delta.concat(ctx.converter.convertChildren(ctx.node, node, {}, 1));
+      delta = delta.concat(ctx.converter.convertChildren(ctx.node, child, {}, 1));
       const attributes: Record<string, unknown> = { table: tableId };
       if (alignCell && alignCell !== 'left') {
         attributes.align = alignCell;
@@ -81,16 +77,15 @@ export function createDefaultBlockHandlers(): Record<string, BlockHandler> {
       delta.insert('\n', attributes);
       ctx.converter.log('table cell', delta.ops, alignCell);
       return delta;
-    },
-    heading: (ctx, child) => {
-      const node = child as Heading;
+    }),
+    heading: blockHandler<Heading>((ctx, child) => {
       const delta = ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent + 1);
       delta.push({
         insert: '\n',
-        attributes: { header: node.depth },
+        attributes: { header: child.depth },
       });
       return delta;
-    },
+    }),
     blockquote: (ctx, child) => {
       const delta = ctx.converter.convertChildren(ctx.node, child, ctx.op, ctx.indent + 1);
       delta.push({ insert: '\n', attributes: { blockquote: true } });
