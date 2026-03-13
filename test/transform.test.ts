@@ -1,12 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import Delta from 'quill-delta';
-import type Op from 'quill-delta/dist/Op';
 import { MarkdownToQuill } from '../src/mdToDelta';
 
 interface Test {
   name: string;
-  ops: Op[];
+  ops: Delta['ops'];
   markdown: string;
 }
 
