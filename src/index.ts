@@ -5,7 +5,6 @@ export type {
   BlockHandler,
   ConvertContext,
   ConvertExtra,
-  HandlerUtils,
   InlineHandler,
   Logger,
   MarkdownToQuillOptions,
