@@ -1,5 +1,6 @@
 module.exports = {
   entry: './src/mdToDelta.ts',
+  target: 'node',
   output: {
     path: __dirname + '/dist/umd',
     filename: 'index.js',

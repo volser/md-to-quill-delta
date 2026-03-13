@@ -1,4 +1,6 @@
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+/** @type {import('jest').Config} */
+const config = {
+  transformIgnorePatterns: [],
 };
+
+module.exports = config;
