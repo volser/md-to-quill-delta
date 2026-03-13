@@ -14,6 +14,7 @@
     "build:dist": "npm run build:esm && npm run build:umd",
     "build:clean": "rm -rf dist",
     "postversion": "npm run build:dist && git push && npm publish && npm run build:clean",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "test": "jest",
     "test:coverage": "jest --collect-coverage"
   },
