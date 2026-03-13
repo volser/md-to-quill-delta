@@ -3,18 +3,18 @@
   "version": "1.1.1",
   "description": "Markdown to Quill Delta",
   "type": "module",
-  "main": "./dist/mdToDelta.cjs",
-  "module": "./dist/mdToDelta.js",
-  "types": "./dist/mdToDelta.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/mdToDelta.d.ts",
-        "default": "./dist/mdToDelta.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/mdToDelta.d.cts",
-        "default": "./dist/mdToDelta.cjs"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
     }
   },

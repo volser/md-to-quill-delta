@@ -12,10 +12,6 @@ import { createDefaultBlockHandlers } from './handlers/block';
 import { createDefaultInlineHandlers } from './handlers/inline';
 import type { BlockHandler, ConvertContext, ConvertExtra, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
 
-export { createDefaultBlockHandlers } from './handlers/block';
-export { createDefaultInlineHandlers } from './handlers/inline';
-export type { BlockHandler, ConvertContext, ConvertExtra, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
-
 const DEFAULT_BLOCK_TYPES = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
 const defaultOptions: MarkdownToQuillOptions = {
