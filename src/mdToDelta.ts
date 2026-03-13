@@ -9,8 +9,11 @@ import Delta from 'quill-delta';
 import type Op from 'quill-delta/dist/Op';
 import type { Node, Parent } from 'unist';
 
+export type Logger = (message: string, ...args: unknown[]) => void;
+
 export interface MarkdownToQuillOptions {
   debug?: boolean;
+  logger?: Logger;
   tableIdGenerator: () => string;
 }
 
@@ -24,6 +27,7 @@ const defaultOptions: MarkdownToQuillOptions = {
 
 export class MarkdownToQuill {
   options: MarkdownToQuillOptions;
+  private log: Logger;
 
   blocks = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
@@ -32,6 +36,7 @@ export class MarkdownToQuill {
       ...defaultOptions,
       ...options,
     };
+    this.log = this.options.logger ?? (this.options.debug ? console.log : () => {});
   }
 
   convert(text: string): Op[] {
@@ -40,9 +45,7 @@ export class MarkdownToQuill {
       mdastExtensions: [gfmStrikethroughFromMarkdown(), gfmTableFromMarkdown(), gfmTaskListItemFromMarkdown()],
     }) as Parent;
 
-    if (this.options.debug) {
-      console.log('tree', tree);
-    }
+    this.log('tree', tree);
     const delta = this.convertChildren(null, tree, {});
     return delta.ops;
   }
@@ -51,9 +54,7 @@ export class MarkdownToQuill {
     const { children } = node as any;
     let delta = new Delta();
     if (children) {
-      if (this.options.debug) {
-        console.log('children:', children, extra);
-      }
+      this.log('children:', children, extra);
       let prevType: string | undefined;
       children.forEach((child: any, idx: number) => {
         if (prevType && this.isBlock(child.type) && this.isBlock(prevType)) {
@@ -101,9 +102,7 @@ export class MarkdownToQuill {
           case 'tableCell': {
             const align = extra?.align;
             const alignCell = align && Array.isArray(align) && align.length > idx && align[idx];
-            if (this.options.debug) {
-              console.log('align', alignCell, align, idx);
-            }
+            this.log('align', alignCell, align, idx);
             delta = delta.concat(this.convertTableCell(node, child, extra?.id, alignCell));
             break;
           }
@@ -207,9 +206,7 @@ export class MarkdownToQuill {
         delta.push({ insert: '\n', attributes });
       }
     }
-    if (this.options.debug) {
-      console.log('list item', delta.ops);
-    }
+    this.log('list item', delta.ops);
     return delta;
   }
 
@@ -221,9 +218,7 @@ export class MarkdownToQuill {
       attributes.align = align;
     }
     delta.insert('\n', attributes);
-    if (this.options.debug) {
-      console.log('table cell', delta.ops, align);
-    }
+    this.log('table cell', delta.ops, align);
     return delta;
   }
 }
