@@ -25,10 +25,21 @@ const delta = converter.convert('# Hello **world**');
 
 ### Options
 
+All options are optional.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `logger` | `(message: string, ...args: unknown[]) => void` | Debug logging function (silent by default) |
+| `tableIdGenerator` | `() => string` | Custom row ID generator for table cells (auto-incremented by default) |
+| `blockHandlers` | `Record<string, BlockHandler>` | Custom handlers for block-level nodes (e.g. paragraph, heading, list) |
+| `inlineHandlers` | `Record<string, InlineHandler>` | Custom handlers for inline-level nodes (e.g. strong, emphasis, link) |
+| `blockTypes` | `string[]` | Override the set of node types treated as block-level |
+| `mdastExtensions` | `object[]` | Additional [mdast extensions](https://github.com/syntax-tree/mdast-util-from-markdown#options) |
+| `micromarkExtensions` | `object[]` | Additional [micromark extensions](https://github.com/micromark/micromark#options) |
+
 ```typescript
 const converter = new MarkdownToQuill({
-  logger: console.log,        // enable debug logging (silent by default)
-  tableIdGenerator: () => id  // custom row ID generator for table cells
+  logger: console.log,
 });
 ```
 
