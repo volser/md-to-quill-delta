@@ -1,3 +1,4 @@
+import type { Link } from 'mdast';
 import type { InlineHandler } from '../types';
 
 export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
@@ -6,9 +7,6 @@ export function createDefaultInlineHandlers(): Record<string, InlineHandler> {
     emphasis: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { italic: true }),
     delete: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { strike: true }),
     inlineCode: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { code: true }),
-    link: (ctx, child) =>
-      ctx.converter.inlineFormat(ctx.node, child, ctx.op, {
-        link: (child as { url: string }).url,
-      }),
+    link: (ctx, child) => ctx.converter.inlineFormat(ctx.node, child, ctx.op, { link: (child as Link).url }),
   };
 }

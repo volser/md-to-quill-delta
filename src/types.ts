@@ -1,13 +1,26 @@
-import type { AlignType, Parents, RootContent } from 'mdast';
+import type { AlignType, Nodes, Parents, RootContent } from 'mdast';
 import type Delta from 'quill-delta';
-import type Op from 'quill-delta/dist/Op';
-import type { MarkdownToQuill } from './mdToDelta';
 
 export type Logger = (message: string, ...args: unknown[]) => void;
+
+export interface Op {
+  insert?: string | object;
+  delete?: number;
+  retain?: number;
+  attributes?: Record<string, unknown>;
+}
 
 export interface ConvertExtra {
   align?: (AlignType | undefined)[];
   id?: string;
+}
+
+export interface HandlerUtils {
+  convertChildren(parent: Parents | null, node: Nodes, op?: Op, indent?: number, extra?: ConvertExtra): Delta;
+  inlineFormat(parent: Parents, node: RootContent, op: Op, attributes: Record<string, unknown>): Delta | null;
+  embedFormat(op: Op, value: Record<string, unknown>, attributes?: Record<string, unknown> | null): Delta;
+  generateId(): string;
+  log: Logger;
 }
 
 export interface ConvertContext {
@@ -17,7 +30,7 @@ export interface ConvertContext {
   indent: number;
   extra?: ConvertExtra;
   idx: number;
-  converter: MarkdownToQuill;
+  converter: HandlerUtils;
 }
 
 export type BlockHandler = (ctx: ConvertContext, child: RootContent) => Delta;
@@ -28,7 +41,6 @@ export interface MarkdownToQuillOptions {
   tableIdGenerator: () => string;
   blockHandlers?: Record<string, BlockHandler>;
   inlineHandlers?: Record<string, InlineHandler>;
-  /** Top-level block types that get inter-block newlines inserted between them */
   blockTypes?: string[];
   mdastExtensions?: object[];
   micromarkExtensions?: object[];

@@ -1,4 +1,4 @@
-import type { AlignType, List, ListItem, Nodes, Parents, Root, RootContent, TableCell } from 'mdast';
+import type { Nodes, Parents, Root, RootContent } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmStrikethroughFromMarkdown } from 'mdast-util-gfm-strikethrough';
 import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
@@ -7,21 +7,20 @@ import { gfmStrikethrough } from 'micromark-extension-gfm-strikethrough';
 import { gfmTable } from 'micromark-extension-gfm-table';
 import { gfmTaskListItem } from 'micromark-extension-gfm-task-list-item';
 import Delta from 'quill-delta';
-import type Op from 'quill-delta/dist/Op';
 import { createDefaultBlockHandlers } from './handlers/block';
 import { createDefaultInlineHandlers } from './handlers/inline';
-import type { BlockHandler, ConvertContext, ConvertExtra, InlineHandler, Logger, MarkdownToQuillOptions } from './types';
+import type { BlockHandler, ConvertContext, ConvertExtra, HandlerUtils, InlineHandler, Logger, MarkdownToQuillOptions, Op } from './types';
 
 const DEFAULT_BLOCK_TYPES = ['paragraph', 'code', 'heading', 'blockquote', 'list', 'table'];
 
-const defaultOptions: MarkdownToQuillOptions = {
-  tableIdGenerator: () => {
+function createDefaultIdGenerator(): () => string {
+  return () => {
     const id = Math.random().toString(36).slice(2, 6);
     return `row-${id}`;
-  },
-};
+  };
+}
 
-export class MarkdownToQuill {
+export class MarkdownToQuill implements HandlerUtils {
   private readonly options: MarkdownToQuillOptions;
   readonly log: Logger;
   private readonly blockTypes: Set<string>;
@@ -30,7 +29,7 @@ export class MarkdownToQuill {
 
   constructor(options?: Partial<MarkdownToQuillOptions>) {
     this.options = {
-      ...defaultOptions,
+      tableIdGenerator: createDefaultIdGenerator(),
       ...options,
     };
     this.log = this.options.logger ?? (() => {});
@@ -51,7 +50,7 @@ export class MarkdownToQuill {
     }
   }
 
-  convert(text: string): Op[] {
+  convert(text: string): Delta {
     const tree: Root = fromMarkdown(text, {
       extensions: [gfmStrikethrough(), gfmTable(), gfmTaskListItem(), ...(this.options.micromarkExtensions ?? [])],
       mdastExtensions: [
@@ -63,8 +62,7 @@ export class MarkdownToQuill {
     }) as Root;
 
     this.log('tree', tree);
-    const delta = this.convertChildren(null, tree, {});
-    return delta.ops;
+    return this.convertChildren(null, tree, {});
   }
 
   convertChildren(parent: Parents | null, node: Nodes, op: Op = {}, indent = 0, extra?: ConvertExtra): Delta {
@@ -73,21 +71,16 @@ export class MarkdownToQuill {
     const parentNode = node as Parents;
     let delta = new Delta();
     this.log('children:', parentNode.children, extra);
+
+    const children = parentNode.children as RootContent[];
     let prevType: string | undefined;
-    parentNode.children.forEach((child: RootContent, idx: number) => {
+    for (let idx = 0; idx < children.length; idx++) {
+      const child = children[idx];
       if (prevType && this.isBlock(child.type) && this.isBlock(prevType)) {
         delta.insert('\n');
       }
 
-      const ctx: ConvertContext = {
-        parent,
-        node: parentNode,
-        op,
-        indent,
-        extra,
-        idx,
-        converter: this,
-      };
+      const ctx: ConvertContext = { parent, node: parentNode, op, indent, extra, idx, converter: this };
       const blockHandler = this.blockHandlers.get(child.type);
 
       if (blockHandler) {
@@ -108,7 +101,7 @@ export class MarkdownToQuill {
       }
 
       prevType = child.type;
-    });
+    }
     return delta;
   }
 
@@ -138,47 +131,6 @@ export class MarkdownToQuill {
       insert: value,
       attributes: { ...op.attributes, ...attributes },
     });
-  }
-
-  convertListItem(parent: List, node: ListItem, indent = 0): Delta {
-    let delta = new Delta();
-    for (const child of node.children) {
-      delta = delta.concat(this.convertChildren(parent, child, {}, indent + 1));
-      if (child.type !== 'list') {
-        let listAttribute = '';
-        if (parent.ordered) {
-          listAttribute = 'ordered';
-        } else if (node.checked) {
-          listAttribute = 'checked';
-        } else if (node.checked === false) {
-          listAttribute = 'unchecked';
-        } else {
-          listAttribute = 'bullet';
-        }
-        const attributes: { list: string; indent?: number } = {
-          list: listAttribute,
-        };
-        if (indent) {
-          attributes.indent = indent;
-        }
-
-        delta.push({ insert: '\n', attributes });
-      }
-    }
-    this.log('list item', delta.ops);
-    return delta;
-  }
-
-  convertTableCell(parent: Parents, node: TableCell, tableId: string, align: AlignType | undefined): Delta {
-    let delta = new Delta();
-    delta = delta.concat(this.convertChildren(parent, node, {}, 1));
-    const attributes: Record<string, unknown> = { table: tableId };
-    if (align && align !== 'left') {
-      attributes.align = align;
-    }
-    delta.insert('\n', attributes);
-    this.log('table cell', delta.ops, align);
-    return delta;
   }
 
   withBlock(type: string, handler: BlockHandler): MarkdownToQuill {

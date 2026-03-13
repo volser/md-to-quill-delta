@@ -3,77 +3,50 @@ import * as path from 'node:path';
 import Delta from 'quill-delta';
 import { MarkdownToQuill } from '../src/mdToDelta';
 
-interface Test {
+interface TestCase {
   name: string;
-  ops: Delta['ops'];
+  expected: Delta['ops'];
   markdown: string;
 }
 
-describe('Remark-Delta Transformer', () => {
-  const isDirectory = (name: string) => fs.lstatSync(name).isDirectory();
+describe('Markdown to Delta', () => {
+  const testDir = __dirname;
+  const categories = fs.readdirSync(testDir).filter((name) => fs.statSync(path.join(testDir, name)).isDirectory());
 
-  const folderPath: string = __dirname;
-  const directories = fs
-    .readdirSync(folderPath)
-    .map((fileName: string) => path.join(folderPath, fileName))
-    .filter((fileName: string) => isDirectory(fileName));
+  const tests: TestCase[] = [];
 
-  const tests: Test[] = [];
+  for (const category of categories) {
+    const dir = path.join(testDir, category);
+    const mdFiles = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
 
-  for (const directory of directories) {
-    const files = fs.readdirSync(directory);
-    while (files.length !== 0) {
-      const file = files[0];
-      files.splice(0, 1);
+    for (const mdFile of mdFiles) {
+      const base = mdFile.replace('.md', '');
+      const jsonPath = path.join(dir, `${base}.json`);
 
-      const baseFileName = file.replace('.md', '').replace('.json', '');
-      let matchingFileName: string;
-      if (file.endsWith('.md')) {
-        matchingFileName = `${baseFileName}.json`;
-      } else if (file.endsWith('.json')) {
-        matchingFileName = `${baseFileName}.md`;
-      } else {
-        throw Error(`Illegal file: ${file}. Allowed file extensions are .md and .json`);
+      if (!fs.existsSync(jsonPath)) {
+        throw new Error(`Missing expected output file for ${category}/${mdFile}`);
       }
-
-      const matchingFileIdx = files.indexOf(matchingFileName);
-      if (matchingFileIdx === -1) {
-        throw Error(`No matching file found for ${file}`);
-      }
-      files.splice(matchingFileIdx, 1);
-
-      const jsonFilePath = path.join(directory, `${baseFileName}.json`);
-      const markdownFilePath = path.join(directory, `${baseFileName}.md`);
 
       tests.push({
-        name: `${path.basename(directory)}/${baseFileName}`,
-        ops: JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8')),
-        markdown: fs.readFileSync(markdownFilePath, 'utf-8'),
+        name: `${category}/${base}`,
+        markdown: fs.readFileSync(path.join(dir, mdFile), 'utf-8'),
+        expected: JSON.parse(fs.readFileSync(jsonPath, 'utf-8')),
       });
     }
   }
 
   for (const t of tests) {
-    test(`Markdown to Delta: ${t.name}`, () => {
-      const enableLog = t.name === '';
+    test(t.name, () => {
       let id = 0;
       const converter = new MarkdownToQuill({
-        logger: enableLog ? console.log : undefined,
-        tableIdGenerator: () => {
-          id++;
-          return String(id);
-        },
+        tableIdGenerator: () => String(++id),
       });
-      const ops = converter.convert(t.markdown);
-      const delta = new Delta();
-      for (const op of t.ops) {
-        delta.push(op);
+      const result = converter.convert(t.markdown);
+      const expected = new Delta();
+      for (const op of t.expected) {
+        expected.push(op);
       }
-      const expectOps = delta.ops;
-      if (enableLog) {
-        console.log(`debug: ${t.name}`, '\n\n', ops, '\n\n', expectOps);
-      }
-      expect(ops).toEqual(expectOps);
+      expect(result.ops).toEqual(expected.ops);
     });
   }
 });
